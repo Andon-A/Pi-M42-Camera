@@ -107,3 +107,8 @@ class Thermistor:
             temp = temp + 273.15
         # Default to Celcius (No conversion required) and return the value.
         return temp
+
+class Battery:
+    def __init__(self, pin):
+        self.pin = pin
+        self.voltage = self.pin.voltage
