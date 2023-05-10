@@ -10,6 +10,7 @@ The following won't be included in this repository:
 - [ ] Set up WSDD as a service
 - [ ] Set up main program as a service
 - [ ] Set up RTC
+- [X] Set up alternate CS pin (Move CS0 to GPIO26/Pin 37)
 
 ## Hardware
 Hardware is not included in this repository (currently)
