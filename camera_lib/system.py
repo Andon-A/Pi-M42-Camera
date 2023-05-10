@@ -11,7 +11,8 @@ import board
 import digitalio
 
 # MCP3008 ADC. Used to read thermistor and battery voltage
-from adafruit_mcp3xxx.mcp3008  as MCP
+import math
+import adafruit_mcp3xxx.mcp3008 as MCP
 from adafruit_mcp3xxx.analog_in import AnalogIn
 
 # set up i3c and spi
@@ -63,7 +64,7 @@ class Service:
 
 class ADC:
     # A simple class for the ADC.
-    def __init__(self, spi, cs=board.CE0):
+    def __init__(self, spi=spi, cs=board.CE0):
         self.cs = digitalio.DigitalInOut(cs) # Set up our chip select pin
         self.ADC = MCP.MCP3008(spi, self.cs) # Set ourselves up
         # Pins 0 through 7. We only use 0 and 2, but the others are available.
@@ -99,7 +100,7 @@ class Thermistor:
         
     def get_temp(self, type="C"):
         # Returns the current temperature in the measurement specified.
-        temp = self.steinhart_temperature_c()
+        temp = self.steinhart_temperature_C()
         if type == "F":
             # Fahrenheit
             temp = ((temp * (9/5)) + 32)
