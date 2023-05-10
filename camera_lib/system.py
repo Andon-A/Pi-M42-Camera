@@ -88,7 +88,7 @@ class Thermistor:
     def steinhart_temperature_C(self):
         # This is from the adafruit learn guide: https://learn.adafruit.com/thermistor/circuitpython
         # It turns raw information into temperature (in C)
-        steinhart = math.log(self.get_R() / self.Ro) / self.beta      # log(R/Ro) / beta
+        steinhart = math.log(self.get_R() / self.Ro) / self.Beta      # log(R/Ro) / beta
         steinhart += 1.0 / (self.To + 273.15)         # log(R/Ro) / beta + 1/To
         steinhart = (1.0 / steinhart) - 273.15   # Invert, convert to C
         return steinhart    
