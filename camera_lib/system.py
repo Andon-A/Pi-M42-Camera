@@ -2,7 +2,7 @@
 # Handles various system pieces, including some hardware.
 
 import os # We need OS to control services
-from rpi_backlight import Backlight # And our backlight
+#from rpi_backlight import Backlight # And our backlight
 import RPi.GPIO as GPIO # We'll need GPIO for our ADC and thermistor
 GPIO.setmode(GPIO.BCM)
 
@@ -11,7 +11,7 @@ import board
 import digitalio
 
 # MCP3008 ADC. Used to read thermistor and battery voltage
-from adafruit_mcp3xxx.mcp3008 import MCP3008
+from adafruit_mcp3xxx.mcp3008  as MCP
 from adafruit_mcp3xxx.analog_in import AnalogIn
 
 # set up i3c and spi
@@ -21,9 +21,9 @@ i2c = board.I2C()
 spi = board.SPI()
 
 # Set up our backlight
-backlight = Backlight()
-backlight.fade_duration = 0
-backlight.brightness = 12 # 0 to 100. 12% is a decent brightness in most situations.
+#backlight = Backlight()
+#backlight.fade_duration = 0
+#backlight.brightness = 12 # 0 to 100. 12% is a decent brightness in most situations.
 
 # Our services to handle.
 class Service:
@@ -65,16 +65,16 @@ class ADC:
     # A simple class for the ADC.
     def __init__(self, spi, cs=board.CE0):
         self.cs = digitalio.DigitalInOut(cs) # Set up our chip select pin
-        self.ADC = MCP3008(spi, self.cs) # Set ourselves up
+        self.ADC = MCP.MCP3008(spi, self.cs) # Set ourselves up
         # Pins 0 through 7. We only use 0 and 2, but the others are available.
-        self.Pin0 = AnalogIn(self.ADC, MCP3008.P0)
-        self.Pin1 = AnalogIn(self.ADC, MCP3008.P1) # Batt thermistor. Doesn't physically exist.
-        self.Pin2 = AnalogIn(self.ADC, MCP3008.P2)
-        self.Pin3 = AnalogIn(self.ADC, MCP3008.P3) # 3 through 7 are avaiable to be soldered to.
-        self.Pin4 = AnalogIn(self.ADC, MCP3008.P4)
-        self.Pin5 = AnalogIn(self.ADC, MCP3008.P5)
-        self.Pin6 = AnalogIn(self.ADC, MCP3008.P6)
-        self.Pin7 = AnalogIn(self.ADC, MCP3008.P7)
+        self.Pin0 = AnalogIn(self.ADC, MCP.P0)
+        self.Pin1 = AnalogIn(self.ADC, MCP.P1) # Batt thermistor. Doesn't physically exist.
+        self.Pin2 = AnalogIn(self.ADC, MCP.P2)
+        self.Pin3 = AnalogIn(self.ADC, MCP.P3) # 3 through 7 are avaiable to be soldered to.
+        self.Pin4 = AnalogIn(self.ADC, MCP.P4)
+        self.Pin5 = AnalogIn(self.ADC, MCP.P5)
+        self.Pin6 = AnalogIn(self.ADC, MCP.P6)
+        self.Pin7 = AnalogIn(self.ADC, MCP.P7)
         
 class Thermistor:
     def __init__(self, pin, Res=10000.0, Ro=10000.0, To=25.0, Beta=3950.0):
