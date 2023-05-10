@@ -15,10 +15,7 @@ import math
 import adafruit_mcp3xxx.mcp3008 as MCP
 from adafruit_mcp3xxx.analog_in import AnalogIn
 
-# set up i3c and spi
-# The current SPI CE0 pin has been changed to GPIO26/Pin 37
-# A future hardware update should address this.
-i2c = board.I2C()
+# set up spi
 spi = board.SPI()
 
 # Set up our backlight
