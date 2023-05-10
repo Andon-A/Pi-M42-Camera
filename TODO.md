@@ -4,7 +4,7 @@
 The following won't be included in this repository:
 - [ ] Clean up startup on Raspberry Pi
 - [ ] Set up file system correctly
- - [ ] Set up /software folder on Pi partition
+ - [X] Set up /software folder on Pi partition
  - [ ] Set up /DCIM folder in photos partition
 - [ ] Set up Samba and WSDD on Raspberry Pi
 - [ ] Set up WSDD as a service
@@ -36,9 +36,9 @@ These are the program parts that do the things, not necessarily tied in to every
 - [ ] Set up  Video Mode
 ### Hardware Interface
 As with camera, the parts that do the things.
-- [ ] Set up battery voltage monitoring for charge status
-- [ ] Set up internal thermistor for heat status
-- [ ] Set up CPU temperature monitoring
+- [X] Set up battery voltage monitoring for charge status
+- [X] Set up internal thermistor for heat status
+- [X] Set up CPU temperature monitoring
 ### Basic Software
 - [ ] Main loop that saves pictures to correct folder
 - [ ] Watchdog that detects new software and reboots program
@@ -54,3 +54,5 @@ As with camera, the parts that do the things.
 These are goals I'm not going to worry too much about initially
 - [ ] Incorporate better [color profiles](https://github.com/davidplowman/Colour_Profiles) ([Info](https://github.com/raspberrypi/picamera2/issues/253))
 - [ ] On-screen selection of Wifi, inc. Password (On-screen keyboard?!)
+- [ ] Battery percentage monitoring (Curve)
+- [ ] Battery percentage monitoring (Chunks)

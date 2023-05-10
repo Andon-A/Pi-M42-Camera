@@ -6,6 +6,8 @@ import os # We need OS to control services
 import RPi.GPIO as GPIO # We'll need GPIO for our ADC and thermistor
 GPIO.setmode(GPIO.BCM)
 
+from gpiozero import CPUTemperature
+
 # We want our board definitions
 import board
 import digitalio
@@ -109,6 +111,31 @@ class Thermistor:
         return temp
 
 class Battery:
+    # Basic battery voltage monitoring.
     def __init__(self, pin):
         self.pin = pin
         self.voltage = self.pin.voltage
+        # TODO: Low and high voltage levels
+        # Maybe: Add a voltage curve to monitor
+        # Maybe: Add a few voltage points (10%, 25%, 50%, 75%, 100%)
+        self.low_voltage = 0.00
+        self.high_voltage = 0.00
+
+class CPU:
+    # Basic CPU temperature monitoring
+    def __init__(self):
+        self.cpu = CPUTemperature()
+    
+    def get_temp(self, type="C"):
+        # Converts the temperature to the chosen units.
+        temp = self.cpu.temperature
+        if type == "F":
+            # Fahrenheit
+            temp = ((temp * (9/5)) + 32)
+            return temp
+        elif type == "K":
+            # Kelvin. Easy.
+            temp = temp + 273.15
+        # Default to Celcius (No conversion required) and return the value.
+        return temp
+            
