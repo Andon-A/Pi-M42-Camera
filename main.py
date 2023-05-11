@@ -2,36 +2,52 @@
 
 # Notes: Board thermistor's Res = 9980, Beta = 3435
 # Notes: 
-from camera_lib import interface
+from camera_lib import system, controls # Our own library
 import time
 import RPi.GPIO as GPIO
 GPIO.setmode(GPIO.BCM)
 
-encoder = 25
-shutter = 1
-GPIO.setup(shutter, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-GPIO.setup(encoder, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.add_event_detect(encoder, GPIO.BOTH, bouncetime=100)
-GPIO.add_event_detect(shutter, GPIO.BOTH, bouncetime=100)
+adc         = system.ADC()
+boardTemp   = system.Thermistor(adc.Pin0)
+cpuTemp     = system.CPU()
+battery     = system.Battery(adc.Pin2)
+encoder     = controls.encoder(24, 7, printEncoder)
+encButton   = controls.button(25, true, printEncoderButton)
+shutter     = controls.button(1, false, printShutterButton)
+modeKnob    = controls.modeKnob()
 
-modeKnob = interface.modeKnob()
+def printEncoder(value, direction):
+    print("Encoder rotated {0} with value {1}".format(direction, value))
+
+def printEncoderButton(value):
+    if value:
+        print("Encoder pressed.")
+    else:
+        print("Encoder Released.")
+
+def printShutter(value):
+    if value:
+        print("Shutter pressed.")
+    else:
+        print("Shutter released.")
+
+def printMode(value):
+    if value == 0:
+        value = "Automatic"
+    elif value == 1:
+        value = "ISO"
+    elif value == 2:
+        value = "Shutter"
+    elif value == 3:
+        value = "ISO/Shutter"
+    elif value == 4:
+        value = "Video"
+    print("Mode changed to: {0}".format(value))
+
 mode = modeKnob.position
 
 while True:
-    # Our main loop.
-    if GPIO.event_detected(encoder):
-        if GPIO.input(encoder):
-            print("Encoder released.")
-        else:
-            print("Encoder pressed.")
-    if GPIO.event_detected(shutter):
-        time.sleep(0.01)
-        if GPIO.input(shutter):
-            print("Shutter pressed.")
-        else:
-            print("Shutter released")
     if mode != modeKnob.position:
-        time.sleep(0.125) # Delay a little to get the new mode.
         mode = modeKnob.position
-        print("Mode: " + str(modeKnob.position))
+        printMode(mode)
 

@@ -31,15 +31,6 @@ class modeKnob:
             self.select.append(self.MCP.get_pin(p))
             self.select[p].direction = digitalio.Direction.INPUT
             self.select[p].pull = digitalio.Pull.UP
-        # Set up interrupts
-        #if self.int_pin > 0:
-            # Set up our GPIO
-            # GPIO.setup(self.int_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-            # GPIO.add_event_detect(self.int_pin, GPIO.FALLING) # A trigger for when we have an update
-            #self.MCP.interrupt_enable = 0xFFFF # Interrupts in all pins
-            #self.MCP.interrupt_configuration = 0x0000 # Interrupts on any change.
-            #self.MCP.io_control = 0x44 # Open drain, and mirroed.
-            # self.MCP.clear_ints() # Clear interrupts
         
     @property
     def position(self):
@@ -58,16 +49,17 @@ class modeKnob:
 # Our Encoder switch is on GPIO 25, and is inverted.
 
 class button:
-    def __init__(self, pin, inverted=False):
+    def __init__(self, pin, inverted=False, callback=None):
         # Set up a button.
         self.pin = pin
         self.inverted = inverted
+        self.callback = callback
         if self.inverted:
             GPIO.setup(self.pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-            #GPIO.add_event_detect(self.pin, GPIO.BOTH, bouncetime=100, callback=self.getPressed)
+            GPIO.add_event_detect(self.pin, GPIO.BOTH, bouncetime=100, callback=self.getPressed)
         else:
             GPIO.setup(self.pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-            #GPIO.add_event_detect(self.pin, GPIO.BOTH, bouncetime=100, callback=self.getPressed)
+            GPIO.add_event_detect(self.pin, GPIO.BOTH, bouncetime=100, callback=self.getPressed)
     
     @property
     def pressed(self):
@@ -75,6 +67,10 @@ class button:
         if self.inverted:
             status = not status
         return status
+    
+    def self.getPressed(self, channel):
+        self.callback(self.pressed)
+        return self.pressed
 
 # Encoder class, from https://github.com/nstansby/rpi-rotary-encoder-python
 # Encoder A pin is GPIO24
