@@ -16,7 +16,7 @@ def printEncoderButton(value):
     else:
         print("Encoder Released.")
 
-def printShutter(value):
+def printShutterButton(value):
     if value:
         print("Shutter pressed.")
     else:
@@ -41,9 +41,9 @@ adc         = system.ADC()
 boardTemp   = system.Thermistor(adc.Pin0)
 cpuTemp     = system.CPU()
 battery     = system.Battery(adc.Pin2)
-encoder     = controls.encoder(24, 7, printEncoder)
-encButton   = controls.button(25, true, printEncoderButton)
-shutter     = controls.button(1, false, printShutterButton)
+encoder     = controls.encoder(24, 23, printEncoder)
+encButton   = controls.button(25, True, printEncoderButton)
+shutter     = controls.button(1, False, printShutterButton)
 modeKnob    = controls.modeKnob()
 
 

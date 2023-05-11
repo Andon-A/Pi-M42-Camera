@@ -20,7 +20,6 @@ class modeKnob:
         self.common = self.MCP.get_pin(7)
         self.common.direction = digitalio.Direction.OUTPUT
         self.common.value = False # Drive it low.
-        self.int_pin = int_pin
         # Set up our other pins.
         # They are all pulled up.
         # The current mode select is only a 5-position one, but they make them up to 7 that work
@@ -83,8 +82,8 @@ class encoder:
         self.state = '00'
         self.direction = None
         self.callback = callback
-        GPIO.setup(self.leftPin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-        GPIO.setup(self.rightPin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+        GPIO.setup(self.leftPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        GPIO.setup(self.rightPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
         GPIO.add_event_detect(self.leftPin, GPIO.BOTH, callback=self.transitionOccurred)  
         GPIO.add_event_detect(self.rightPin, GPIO.BOTH, callback=self.transitionOccurred)  
 
