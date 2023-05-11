@@ -4,7 +4,6 @@ import board
 import digitalio
 import RPi.GPIO as GPIO
 GPIO.setmode(GPIO.BCM)
-import encoder # We'll need our encoder library
 
 # MCP23008 GPIO
 from adafruit_mcp230xx.mcp23008 import MCP23008
@@ -68,14 +67,14 @@ class button:
             status = not status
         return status
     
-    def self.getPressed(self, channel):
+    def getPressed(self, channel):
         self.callback(self.pressed)
         return self.pressed
 
 # Encoder class, from https://github.com/nstansby/rpi-rotary-encoder-python
 # Encoder A pin is GPIO24
 # Encoder B pin is GPIO7
-class Encoder:
+class encoder:
 
     def __init__(self, leftPin, rightPin, callback=None):
         self.leftPin = leftPin

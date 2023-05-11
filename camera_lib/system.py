@@ -67,9 +67,9 @@ class ADC:
         self.cs = digitalio.DigitalInOut(cs) # Set up our chip select pin
         self.ADC = MCP.MCP3008(spi, self.cs) # Set ourselves up
         # Pins 0 through 7. We only use 0 and 2, but the others are available.
-        self.Pin0 = AnalogIn(self.ADC, MCP.P0)
+        self.Pin0 = AnalogIn(self.ADC, MCP.P0) # Our board thermistor
         self.Pin1 = AnalogIn(self.ADC, MCP.P1) # Batt thermistor. Doesn't physically exist.
-        self.Pin2 = AnalogIn(self.ADC, MCP.P2)
+        self.Pin2 = AnalogIn(self.ADC, MCP.P2) # Our Battery voltage
         self.Pin3 = AnalogIn(self.ADC, MCP.P3) # 3 through 7 are avaiable to be soldered to.
         self.Pin4 = AnalogIn(self.ADC, MCP.P4)
         self.Pin5 = AnalogIn(self.ADC, MCP.P5)

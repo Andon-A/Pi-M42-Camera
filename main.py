@@ -7,15 +7,6 @@ import time
 import RPi.GPIO as GPIO
 GPIO.setmode(GPIO.BCM)
 
-adc         = system.ADC()
-boardTemp   = system.Thermistor(adc.Pin0)
-cpuTemp     = system.CPU()
-battery     = system.Battery(adc.Pin2)
-encoder     = controls.encoder(24, 7, printEncoder)
-encButton   = controls.button(25, true, printEncoderButton)
-shutter     = controls.button(1, false, printShutterButton)
-modeKnob    = controls.modeKnob()
-
 def printEncoder(value, direction):
     print("Encoder rotated {0} with value {1}".format(direction, value))
 
@@ -43,6 +34,18 @@ def printMode(value):
     elif value == 4:
         value = "Video"
     print("Mode changed to: {0}".format(value))
+
+
+# Our interfaces
+adc         = system.ADC()
+boardTemp   = system.Thermistor(adc.Pin0)
+cpuTemp     = system.CPU()
+battery     = system.Battery(adc.Pin2)
+encoder     = controls.encoder(24, 7, printEncoder)
+encButton   = controls.button(25, true, printEncoderButton)
+shutter     = controls.button(1, false, printShutterButton)
+modeKnob    = controls.modeKnob()
+
 
 mode = modeKnob.position
 
