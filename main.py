@@ -64,4 +64,6 @@ encoder     = controls.encoder(_encIntPin, printEncoder)
 
 
 while True:
+    # Do nothing. This is (currently) entirely interrupt driven.
+    # This is sure to change when we actually start programming things.
     pass
