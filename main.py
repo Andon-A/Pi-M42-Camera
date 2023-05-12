@@ -74,8 +74,8 @@ encoder     = controls.encoder(_encIntPin, printEncoder)
 
 
 while True:
-    print("Interface Board temp: " + str(boardTemp.temp_F))
-    print("CPU Temp: " + str(cpuTemp.temp_F))
-    print("Battery Voltage: " + str(battery.voltage))
+    print("Interface Board temp: " + str(round(boardTemp.temp_F, 2)))
+    print("CPU Temp: " + str(round(cpuTemp.temp_F, 2)))
+    print("Battery Voltage: " + str(round(battery.voltage, 2)))
     checkShutterButton()
     time.sleep(10)
