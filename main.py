@@ -7,50 +7,61 @@ import time
 import RPi.GPIO as GPIO
 GPIO.setmode(GPIO.BCM)
 
-def printEncoder(value, direction):
-    print("Encoder rotated {0} with value {1}".format(direction, value))
+# Pin assignments
+_shutterPin = 14
+_encIntPin  = 12 # CHANGE THIS when it's actually connected
 
-def printEncoderButton(value):
-    if value:
-        print("Encoder pressed.")
-    else:
-        print("Encoder Released.")
+# Encoder variables.
+_lastCount = 0 # The last count that we had our encoder at.
+_encPressed = False
+_encSpeed = "None"
+_encDir = "Stopped"
+_encMidSpeed = 20 # The change for a medium speed threshold
+_encHiSpeed = 100 # The change for a high speed threshold
 
 def printShutterButton(value):
+    # This won't stay.
     if value:
         print("Shutter pressed.")
     else:
         print("Shutter released.")
 
-def printMode(value):
-    if value == 0:
-        value = "Automatic"
-    elif value == 1:
-        value = "ISO"
-    elif value == 2:
-        value = "Shutter"
-    elif value == 3:
-        value = "ISO/Shutter"
-    elif value == 4:
-        value = "Video"
-    print("Mode changed to: {0}".format(value))
-
+def printEncoder(pressed, count)
+    # Nor will this.
+    if pressed and not _encPressed:
+        print("Encoder Pressed.")
+        _encPressed = pressed
+    if not pressed and _encPressed:
+        print("Encoder Released.")
+        _encPressed = pressed
+    if count != _lastCount:
+        countDif = count - lastCount
+        _lastCount = count
+        if countDif < 0:
+            _encDir = "Left"
+        else:
+            _encDir = "Right"
+        if countDif < _encMidSpeed:
+            _encSpeed = "Slow"
+        elif countDif < _encHiSpeed:
+            _encSpeed = "Medium"
+        else:
+            _encSpeed = "Fast"
+        print("Encoder Spun {0}, count {1}, dif {2}".format(dir, count, countDif))
+    else:
+        _encDir = "Stopped"
+        _encSpeed = "None"
+        print("Encoder stopped at count {0}".format(count))
 
 # Our interfaces
 adc         = system.ADC()
 boardTemp   = system.Thermistor(adc.Pin0)
 cpuTemp     = system.CPU()
 battery     = system.Battery(adc.Pin2)
-encoder     = controls.encoder(24, 23, printEncoder)
-encButton   = controls.button(25, True, printEncoderButton)
-shutter     = controls.button(1, False, printShutterButton)
-modeKnob    = controls.modeKnob()
+# Shutter is hooked up to GPIO 14
+shutter     = controls.button(_shutterPin, False, printShutterButton)
+encoder     = controls.encoder(_encIntPin, printEncoder)
 
-
-mode = modeKnob.position
 
 while True:
-    if mode != modeKnob.position:
-        mode = modeKnob.position
-        printMode(mode)
-
+    pass

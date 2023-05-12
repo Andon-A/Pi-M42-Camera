@@ -1,50 +1,11 @@
 # This handles our controls. That is, it tells us what our controls are doing.
 
-import board
-import digitalio
+# Our GPIO setup
 import RPi.GPIO as GPIO
 GPIO.setmode(GPIO.BCM)
 
-# MCP23008 GPIO
-from adafruit_mcp230xx.mcp23008 import MCP23008
-
-i2c = board.I2C()
-
-class modeKnob:
-    # Our mode knob goes through an MCP23008 with an address of 0x20
-    # Initially, I tried getting the Encoder through another one
-    # But that just didn't work.
-    def __init__(self, mcp_i2c=i2c, address=0x20):
-        self.MCP = MCP23008(mcp_i2c, address=address)
-        # Set up our common pin.
-        self.common = self.MCP.get_pin(7)
-        self.common.direction = digitalio.Direction.OUTPUT
-        self.common.value = False # Drive it low.
-        # Set up our other pins.
-        # They are all pulled up.
-        # The current mode select is only a 5-position one, but they make them up to 7 that work
-        # largely in the same way.
-        self.select = []
-        for p in range(0,6):
-            self.select.append(self.MCP.get_pin(p))
-            self.select[p].direction = digitalio.Direction.INPUT
-            self.select[p].pull = digitalio.Pull.UP
-        
-    @property
-    def position(self):
-        # This presumes that only one is ever selected.
-        # Which is how the rotary switch should work.
-        # So it simply selects the first one it finds.
-        # Returns 7 if none are selected somehow.
-        pos = 7
-        for pin in range(0,6):
-            if self.select[pin].value == False:
-                pos = pin
-                break #Found our pin, no need to continue.
-        return pos
-
-# Our Shutter Sense switch is on GPIO 1
-# Our Encoder switch is on GPIO 25, and is inverted.
+# Out I2C setup. We use Sparkfun's qwiic system.
+import qwiic_twist
 
 class button:
     def __init__(self, pin, inverted=False, callback=None):
@@ -70,68 +31,77 @@ class button:
         self.callback(self.pressed)
         return self.pressed
 
-# Encoder class, from https://github.com/nstansby/rpi-rotary-encoder-python
-# Encoder A pin is GPIO24
-# Encoder B pin is GPIO7
 class encoder:
-
-    def __init__(self, leftPin, rightPin, callback=None):
-        self.leftPin = leftPin
-        self.rightPin = rightPin
-        self.value = 0
-        self.state = '00'
-        self.direction = None
-        self.callback = callback
-        GPIO.setup(self.leftPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        GPIO.setup(self.rightPin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        GPIO.add_event_detect(self.leftPin, GPIO.BOTH, callback=self.transitionOccurred)  
-        GPIO.add_event_detect(self.rightPin, GPIO.BOTH, callback=self.transitionOccurred)  
-
-    def transitionOccurred(self, channel):
-        p1 = GPIO.input(self.leftPin)
-        p2 = GPIO.input(self.rightPin)
-        newState = "{}{}".format(p1, p2)
-
-        if self.state == "00": # Resting position
-            if newState == "01": # Turned right 1
-                self.direction = "R"
-            elif newState == "10": # Turned left 1
-                self.direction = "L"
-
-        elif self.state == "01": # R1 or L3 position
-            if newState == "11": # Turned right 1
-                self.direction = "R"
-            elif newState == "00": # Turned left 1
-                if self.direction == "L":
-                    self.value = self.value - 1
-                    if self.callback is not None:
-                        self.callback(self.value, self.direction)
-
-        elif self.state == "10": # R3 or L1
-            if newState == "11": # Turned left 1
-                self.direction = "L"
-            elif newState == "00": # Turned right 1
-                if self.direction == "R":
-                    self.value = self.value + 1
-                    if self.callback is not None:
-                        self.callback(self.value, self.direction)
-
-        else: # self.state == "11"
-            if newState == "01": # Turned left 1
-                self.direction = "L"
-            elif newState == "10": # Turned right 1
-                self.direction = "R"
-            elif newState == "00": # Skipped an intermediate 01 or 10 state, but if we know direction then a turn is complete
-                if self.direction == "L":
-                    self.value = self.value - 1
-                    if self.callback is not None:
-                        self.callback(self.value, self.direction)
-                elif self.direction == "R":
-                    self.value = self.value + 1
-                    if self.callback is not None:
-                        self.callback(self.value, self.direction)
-                
-        self.state = newState
-
-    def getValue(self):
-        return self.value
+    def __init__(self, int_pin, callback=None, color=(0,0,0), timeout=100):
+        self.int_pin = int_pin
+        self.callback = callback  # We return pressed and count
+        self._color = (0,0,0)     # Our LED color. Default to nothing, it's set later.
+        self._timeout = -1        # How long we wait (ms) after the encoder has stopped moving to ping.
+                                  # Again, default to a bad value, and we'll be set later.
+        self.enabled = False      # Has our encoder properly enabled?
+         
+        # We want to set up our interrupt pin as a pullup.
+        GPIO.setup(self.int_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        # We also only care when it goes down.
+        GPIO.add_event_detect(self.int_pin, GPIO.FALLING, callback=self.detectInput)
+        # Now set up the twist.
+        self.twist = qwiic_twist.QwiicTwist()
+        if self.twist.connected == False:
+            print("Encoder not detected.")
+        else:
+            self.twist.begin()
+            self.enabled = True
+            self.color = color # The RGB color of the LED
+            self.timeout = timeout
+            print("Encoder initailized")
+        
+    @property
+    def pressed(self):
+        # Returns our current pressed state.
+        if self.enabled:
+            return self.twist.pressed
+        else:
+            return false
+    
+    @property
+    def count(self):
+        if self.enabled:
+            return self.twist.count
+        else:
+            return 0
+        
+    @property
+    def color(self):
+        return self._color
+    
+    @color.setter
+    def color(self, color):
+        # Sets the color. Color is an RGP tuple
+        if self.enabled:
+            self.twist.set_color(color[0], color[1], color[2])
+            self._color = color
+    
+    @property
+    def timeout(self):
+        return self._timeout
+    
+    @timeout.setter
+    def timeout(self, ms):
+        # Sets the timeout of the interrupt pin
+        # It waits this long after the encoder has stopped moving to trigger the interrupt
+        # Min is 1ms, max is 65000 ms (65 sec), which we constrain to.
+        if self.enabled:
+            if ms < 1:
+                ms = 1
+            elif ms > 65000:
+                ms = 65000
+            self.twist.set_int_timeout(ms)
+            self._timeout = ms
+    
+    def detectInput(self, channel):
+        # This is triggered when we detect an interrupt.
+        if self.enabled and self.callback != None:
+            # Only do the callback if we have a callback set and we're enabled.
+            self.callback(self.pressed, self.count)
+        
+    

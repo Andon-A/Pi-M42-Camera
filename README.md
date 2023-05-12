@@ -9,7 +9,6 @@ I was able to mount the focal reducer at a point where it provides *about* a 0.7
 
 ### Hardware
 The camera uses some custom hardware:
-- A control board that connects the mode selector switch, encoder, shutter button, and flash port to the Pi
 - A power board that converts battery input into 5v power for the pi
 - A [PCF8523](https://www.adafruit.com/product/3295) real-time clock
 - An interface board that connects each of the above to the Pi
@@ -19,16 +18,16 @@ It also uses some off-the-shelf hardware:
 - A Raspberry Pi HQ Camera. I took off the standard mount, as I was providing my own.
 - [The smallest DSI screen I could get my hands on.](https://www.amazon.com/gp/product/B08634Y16L)
 - A [tiny USB3 drive](https://www.amazon.com/gp/product/B07XHYVN62) is used instead of an SD card for accessibility purposes
+- A [Sparkfun Qwiic Twist rotary encoder](https://www.sparkfun.com/products/15083)
 
 ### Software
 Due to the above hardware, the following are required:
 - [Adafruit's Blinka](https://learn.adafruit.com/circuitpython-on-raspberrypi-linux)
-- Adafruit's [MCP3xxx library](https://github.com/adafruit/Adafruit_CircuitPython_MCP3xxx) and [MCP230xx library](https://github.com/adafruit/Adafruit_CircuitPython_MCP230xx)
+- Adafruit's [MCP3xxx library](https://github.com/adafruit/Adafruit_CircuitPython_MCP3xxx)
+- Sparkfun's [Qwiic Twist library](https://github.com/sparkfun/Qwiic_Twist_Py)
 - [Setup for the above RTC](https://learn.adafruit.com/adding-a-real-time-clock-to-raspberry-pi)
-- Neal Stansby's [RPi Encoder driver](https://github.com/nstansby/rpi-rotary-encoder-python). Despite the mention of RotaryIO, this package is not included in Blinka
 
 The following are used, but not necessary for the camera functions:
-- Linus Groh's [rpi-backlight python library](https://pypi.org/project/rpi-backlight/)
 - Samba and [WSDD](https://github.com/christgau/wsdd) for easy access to the camera's pictures
 
 I've also done the following:
