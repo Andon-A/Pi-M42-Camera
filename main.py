@@ -64,6 +64,7 @@ encoder     = controls.encoder(_encIntPin, printEncoder)
 
 
 while True:
-    # Do nothing. This is (currently) entirely interrupt driven.
-    # This is sure to change when we actually start programming things.
-    pass
+    print("Interface Board temp: " + str(boardTemp.temp_F))
+    print("CPU Temp: " + str(cpuTemp.temp_f))
+    print("Battery Voltage: " + str(battery.voltage))
+    time.sleep(10)

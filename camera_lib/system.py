@@ -96,7 +96,7 @@ class Thermistor:
         # Gets the current resistance of the thermistor.
         R = self.Res / (65525/self.pin.value - 1)
         return R
-        
+    
     def get_temp(self, type="C"):
         # Returns the current temperature in the measurement specified.
         temp = self.steinhart_temperature_C()
@@ -109,6 +109,19 @@ class Thermistor:
             temp = temp + 273.15
         # Default to Celcius (No conversion required) and return the value.
         return temp
+    
+    @property
+    def temp_F(self):
+        return self.get_temp("F")
+    
+    @property
+    def temp_C(self):
+        return self.get_temp("C")
+    
+    @property
+    def temp_K(self):
+        return self.get_temp("K")
+        
 
 class Battery:
     # Basic battery voltage monitoring.
@@ -138,4 +151,15 @@ class CPU:
             temp = temp + 273.15
         # Default to Celcius (No conversion required) and return the value.
         return temp
-            
+    
+    @property
+    def temp_F(self):
+        return self.get_temp("F")
+    
+    @property
+    def temp_C(self):
+        return self.get_temp("C")
+    
+    @property
+    def temp_K(self):
+        return self.get_temp("K")
