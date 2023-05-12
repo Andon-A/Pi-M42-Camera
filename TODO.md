@@ -14,16 +14,14 @@ The following won't be included in this repository:
 
 ## Hardware
 Hardware is not included in this repository (currently)
-- [ ] Design 3d printed knob for mode selector
 - [ ] Design 3d printed bottom plate that includes USB-C and USB mounts
+- [ ] Design 3d printed top plate that fits new encoder, shutter button, and cold shoe.
 
 ## Software
 ### Controls
 These are simply setting up the interfaces, not doing anything with them.
-- [ ] Read shutter button
-- [ ] Read Encoder button
+- [X] Read shutter button
 - [ ] Read Encoder
-- [ ] Read Mode Selector
 ### Camera
 These are the program parts that do the things, not necessarily tied in to everything
 - [ ] Set up camera profiles (Video, Still, Raw, and Preview)
