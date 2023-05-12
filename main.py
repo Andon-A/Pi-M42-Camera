@@ -13,11 +13,17 @@ _encIntPin  = 12 # CHANGE THIS when it's actually connected
 
 # Encoder variables.
 _lastCount = 0 # The last count that we had our encoder at.
+_shutterPressed = False
 _encPressed = False
 _encSpeed = "None"
 _encDir = "Stopped"
 _encMidSpeed = 20 # The change for a medium speed threshold
 _encHiSpeed = 100 # The change for a high speed threshold
+
+def checkShutterButton():
+    # See if our shutter button is actually
+    if shutter.pressed != _shutterPressed:
+        printShutterButton(shutter.pressed)
 
 def printShutterButton(value):
     # This won't stay.
@@ -25,8 +31,12 @@ def printShutterButton(value):
         print("Shutter pressed.")
     else:
         print("Shutter released.")
+    _shutterPressed = value
+    time.sleep(0.1)
+    checkShutterButton()
+    
 
-def printEncoder(pressed, count)
+def printEncoder(pressed, count):
     # Nor will this.
     if pressed and not _encPressed:
         print("Encoder Pressed.")
@@ -65,6 +75,7 @@ encoder     = controls.encoder(_encIntPin, printEncoder)
 
 while True:
     print("Interface Board temp: " + str(boardTemp.temp_F))
-    print("CPU Temp: " + str(cpuTemp.temp_f))
+    print("CPU Temp: " + str(cpuTemp.temp_F))
     print("Battery Voltage: " + str(battery.voltage))
+    checkShutterButton()
     time.sleep(10)
