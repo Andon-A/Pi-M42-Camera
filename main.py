@@ -1,8 +1,13 @@
 # Main Python code for the Pi Camera
 
 # Notes: Board thermistor's Res = 9980, Beta = 3435
-# Notes: 
-from camera_lib import system, controls # Our own library
+
+# Run our updater.
+# Once the watchdog is in play, we'll be able to restart automatically with this, too.
+import updater
+updater.update()
+
+from camera_lib import system, controls # Our own libraries
 import time
 import RPi.GPIO as GPIO
 GPIO.setmode(GPIO.BCM)
@@ -32,8 +37,8 @@ def printShutterButton(value):
     else:
         print("Shutter released.")
     _shutterPressed = value
-    time.sleep(0.1)
-    checkShutterButton()
+    #time.sleep(0.1)
+    #checkShutterButton()
     
 
 def printEncoder(pressed, count):
@@ -65,7 +70,7 @@ def printEncoder(pressed, count):
 
 # Our interfaces
 adc         = system.ADC()
-boardTemp   = system.Thermistor(adc.Pin0)
+boardTemp   = system.Thermistor(adc.Pin0, Res=9980, Beta=3435)
 cpuTemp     = system.CPU()
 battery     = system.Battery(adc.Pin2)
 # Shutter is hooked up to GPIO 14
@@ -77,5 +82,6 @@ while True:
     print("Interface Board temp: " + str(round(boardTemp.temp_F, 2)))
     print("CPU Temp: " + str(round(cpuTemp.temp_F, 2)))
     print("Battery Voltage: " + str(round(battery.voltage, 2)))
+    print("Shutter button: " + str(_shutterPressed))
     checkShutterButton()
     time.sleep(10)

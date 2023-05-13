@@ -4,8 +4,24 @@ import os
 import requests
 import filecmp
 import configparser
+import socket
 
 fallback_cfg = "https://raw.githubusercontent.com/Andon-A/Pi-M42-Camera/main/config/updater.cfg"
+
+# Check if we're connected to the internet.
+def isConnected():
+    print("Checking internet connection.")
+    try:
+        # Is our file server actually reachable?
+        sock = socket.create_connection(("raw.githubusercontent.com", 80))
+        if sock is not None:
+            print("Internet connected")
+            sock.close
+        return True
+    except OSError:
+        pass
+    print("Internet unavailable, update aborted.")
+    return False
 
 # Our file checker. Returns true if the file is "real" and false if it isn't.
 def isDownloadable(header):
@@ -37,7 +53,7 @@ def downloadFile(fileURL, target, overwrite=True):
     elif os.path.isfile(target) and filecmp.cmp(target, "temp.py"):
         print("Skipping {0}, same file already exists.".format(target))
         os.remove("temp.py")
-        return False
+        return True # We didn't download it, but it's the same file.
     elif os.path.isfile(target) and not filecmp.cmp(target, "temp.py") and overwrite:
         print("Replacing {0} with remote version.".format(target))
         os.remove(target)
@@ -47,40 +63,48 @@ def downloadFile(fileURL, target, overwrite=True):
         print("Unknown error with {0}. Aborting file.".format(target))
         return False
 
-dl = False
+def update(overwrite=True):
+    
+    # Check our internet connection before continuing.
+    if not isConnected():
+        return False
 
-# Load our config file.
-if os.path.isfile("./config/updater.cfg"):
-    print("Loading config file...")
-    config = configparser.ConfigParser(allow_no_value=True)
-    config.read("./config/updater.cfg")
-    # And try to download the new one.
-    print("Downloading update list...")
-    dl = downloadFile(config["INFO"]["ConfigURL"], "./config/updater.cfg")
-# We don't have a config file, so download one.
-else:
-    print("Config file not found. Downloading fallback...")
-    if not os.path.isdir("./config/"):
-        os.mkdir("./config/")
-    print("Downloading update list...")
-    dl = downloadFile(fallback_cfg, "./config/updater.cfg")
+    dl = False
+    # Load our config file.
+    if os.path.isfile("./config/updater.cfg"):
+        print("Loading config file...")
+        config = configparser.ConfigParser(allow_no_value=True)
+        config.read("./config/updater.cfg")
+        # And try to download the new one.
+        print("Downloading update list...")
+        dl = downloadFile(config["INFO"]["ConfigURL"], "./config/updater.cfg", overwrite)
+    # We don't have a config file, so download one.
+    else:
+        print("Config file not found. Downloading fallback...")
+        if not os.path.isdir("./config"):
+            os.mkdir("config")
+        print("Downloading update list...")
+        dl = downloadFile(fallback_cfg, "./config/updater.cfg", overwrite)
 
-if dl:
-    print("Update list downloaded.")
-    # We have downloaded our file, so reload it.
-    config = configparser.ConfigParser(allow_no_value=True)
-    config.read("./config/updater.cfg")
-    url_base = config["INFO"]["MainURL"]
-    # Make our folders
-    for folder in config["Folders"]:
-        os.mkdir("./" + folder)
-    # Now download our files.
-    for file in config["Files"]:
-        url = url_base + file
-        print("Downloading {0}".format(url))
-        target = "./" + file
-        downloadFile(url, target)
+    if dl:
+        print("Update list downloaded.")
+        # We have downloaded our file, so reload it.
+        config = configparser.ConfigParser(allow_no_value=True)
+        config.read("./config/updater.cfg")
+        url_base = config["INFO"]["MainURL"]
+        # Make our folders
+        for folder in config["Folders"]:
+            if not os.path.isdir("./" + folder):
+                os.mkdir("./" + folder)
+        # Now download our files.
+        for file in config["Files"]:
+            url = url_base + file
+            print("Downloading {0}".format(url))
+            target = "./" + file
+            downloadFile(url, target, overwrite)
+        print("Update complete.")
+        return True
 
-else:
-    print("Update list download failed. Aborting.")
-    exit()
+    else:
+        print("Update list download failed. Aborting.")
+        return False
