@@ -5,6 +5,8 @@ import requests
 import filecmp
 import configparser
 
+fallback_cfg = "https://raw.githubusercontent.com/Andon-A/Pi-M42-Camera/main/config/updater.cfg"
+
 # Our file checker. Returns true if the file is "real" and false if it isn't.
 def isDownloadable(header):
     if header.status_code != 200: # We only want full files.
@@ -23,7 +25,7 @@ def downloadFile(fileURL, target, overwrite=True):
         print("Target {0} not downloadable.".format(url))
         return False
     f = requests.get(url, allow_redirects=True)
-    open("temp.py", 'wb').write(f)
+    open("temp.py", 'wb').write(f.content)
     if not os.path.isfile(target):
         print("Saving {0}...".format(target))
         os.rename("temp.py", target)
@@ -45,13 +47,23 @@ def downloadFile(fileURL, target, overwrite=True):
         print("Unknown error with {0}. Aborting file.".format(target))
         return False
 
-# Load our config file.
-config = configparser.ConfigParser(allow_no_value=True)
-config.read("./config/updater.cfg")
+dl = False
 
-# Then download the new config file.
-print("Downloading update list...")
-dl = downloadFile(config["INFO"]["ConfigURL"], "/config/updater.cfg")
+# Load our config file.
+if os.path.isfile("./config/updater.cfg"):
+    print("Loading config file...")
+    config = configparser.ConfigParser(allow_no_value=True)
+    config.read("./config/updater.cfg")
+    # And try to download the new one.
+    print("Downloading update list...")
+    dl = downloadFile(config["INFO"]["ConfigURL"], "./config/updater.cfg")
+# We don't have a config file, so download one.
+else:
+    print("Config file not found. Downloading fallback...")
+    if not os.path.isdir("./config/"):
+        os.mkdir("./config/")
+    print("Downloading update list...")
+    dl = downloadFile(fallback_cfg, "./config/updater.cfg")
 
 if dl:
     print("Update list downloaded.")
@@ -59,6 +71,9 @@ if dl:
     config = configparser.ConfigParser(allow_no_value=True)
     config.read("./config/updater.cfg")
     url_base = config["INFO"]["MainURL"]
+    # Make our folders
+    for folder in config["Folders"]:
+        os.mkdir("./" + folder)
     # Now download our files.
     for file in config["Files"]:
         url = url_base + file
