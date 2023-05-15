@@ -42,6 +42,7 @@ def printShutterButton(value):
     
 
 def printEncoder(pressed, count):
+    print("Encoder")
     # Nor will this.
     if pressed and not encPressed:
         print("Encoder Pressed.")
@@ -84,5 +85,6 @@ while True:
     print("Battery Voltage: " + str(round(battery.voltage, 2)))
     print("Shutter button: " + str(shutterPressed))
     print("Encoder count: " + str(encoder.count))
+    encoder.clear_interrupts()
     checkShutterButton()
     time.sleep(10)

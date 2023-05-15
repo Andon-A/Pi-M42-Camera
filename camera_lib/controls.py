@@ -32,7 +32,7 @@ class button:
         return self.pressed
 
 class encoder:
-    def __init__(self, int_pin, callback=None, color=(0,0,0), timeout=100):
+    def __init__(self, int_pin, callback, color=(0,0,0), timeout=100):
         self.int_pin = int_pin
         self.callback = callback  # We return pressed and count
         self._color = (0,0,0)     # Our LED color. Default to nothing, it's set later.
@@ -98,9 +98,13 @@ class encoder:
             self.twist.set_int_timeout(ms)
             self._timeout = ms
     
+    def clear_interrupts(self):
+        self.twist.clear_interrupts()
+    
     def detectInput(self, channel):
+        print("Detect")
         # This is triggered when we detect an interrupt.
-        if self.enabled and self.callback != None:
+        if self.enabled:
             # Only do the callback if we have a callback set and we're enabled.
             self.callback(self.pressed, self.count)
             self.twist.clear_interrupts()
