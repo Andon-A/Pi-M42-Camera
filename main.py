@@ -14,7 +14,7 @@ GPIO.setmode(GPIO.BCM)
 
 # Pin assignments
 _shutterPin = 14
-_encIntPin  = 12 # CHANGE THIS when it's actually connected
+_encIntPin  = 17
 
 # Encoder variables.
 _lastCount = 0 # The last count that we had our encoder at.

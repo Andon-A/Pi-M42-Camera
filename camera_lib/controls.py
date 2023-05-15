@@ -103,5 +103,6 @@ class encoder:
         if self.enabled and self.callback != None:
             # Only do the callback if we have a callback set and we're enabled.
             self.callback(self.pressed, self.count)
+            self.twist.clear_interrupts()
         
     
