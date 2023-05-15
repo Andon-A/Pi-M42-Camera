@@ -83,5 +83,6 @@ while True:
     print("CPU Temp: " + str(round(cpuTemp.temp_F, 2)))
     print("Battery Voltage: " + str(round(battery.voltage, 2)))
     print("Shutter button: " + str(shutterPressed))
+    print("Encoder count: " + str(encoder.count))
     checkShutterButton()
     time.sleep(10)
