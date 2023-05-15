@@ -5,7 +5,7 @@
 # Run our updater.
 # Once the watchdog is in play, we'll be able to restart automatically with this, too.
 import updater
-updater.update()
+#updater.update()
 
 from camera_lib import system, controls # Our own libraries
 import time
@@ -13,60 +13,62 @@ import RPi.GPIO as GPIO
 GPIO.setmode(GPIO.BCM)
 
 # Pin assignments
-shutterPin = 14
-encIntPin  = 17
+_shutterPin = 14
+_encIntPin  = 17 # CHANGE THIS when it's actually connected
 
 # Encoder variables.
-lastCount = 0 # The last count that we had our encoder at.
-shutterPressed = False
-encPressed = False
-encSpeed = "None"
-encDir = "Stopped"
-encMidSpeed = 20 # The change for a medium speed threshold
-encHiSpeed = 100 # The change for a high speed threshold
+_lastCount = 0 # The last count that we had our encoder at.
+_shutterPressed = False
+_encPressed = False
+_encSpeed = "None"
+_encDir = "Stopped"
+_encMidSpeed = 20 # The change for a medium speed threshold
+_encHiSpeed = 100 # The change for a high speed threshold
 
 def checkShutterButton():
     # See if our shutter button is actually
-    if shutter.pressed != shutterPressed:
+    global _shutterPressed
+    if shutter.pressed != _shutterPressed:
         printShutterButton(shutter.pressed)
 
 def printShutterButton(value):
+    global _shutterpressed
     # This won't stay.
     if value:
         print("Shutter pressed.")
     else:
         print("Shutter released.")
-    shutterPressed = value
+    _shutterPressed = value
     #time.sleep(0.1)
     #checkShutterButton()
     
 
 def printEncoder(pressed, count):
-    print("Encoder")
+    global _lastCount, _encPressed, _encSpeed, _encDir, _encMidSpeed, _encHiSpeed
     # Nor will this.
-    if pressed and not encPressed:
+    if pressed and not _encPressed:
         print("Encoder Pressed.")
-        encPressed = pressed
-    if not pressed and encPressed:
+        _encPressed = pressed
+    if not pressed and _encPressed:
         print("Encoder Released.")
-        encPressed = pressed
-    if count != lastCount:
+        _encPressed = pressed
+    if count != _lastCount:
         countDif = count - lastCount
-        lastCount = count
+        _lastCount = count
         if countDif < 0:
-            encDir = "Left"
+            _encDir = "Left"
         else:
-            encDir = "Right"
-        if countDif < encMidSpeed:
-            encSpeed = "Slow"
-        elif countDif < encHiSpeed:
-            encSpeed = "Medium"
+            _encDir = "Right"
+        if countDif < _encMidSpeed:
+            _encSpeed = "Slow"
+        elif countDif < _encHiSpeed:
+            _encSpeed = "Medium"
         else:
-            encSpeed = "Fast"
+            _encSpeed = "Fast"
         print("Encoder Spun {0}, count {1}, dif {2}".format(dir, count, countDif))
     else:
-        encDir = "Stopped"
-        encSpeed = "None"
+        _encDir = "Stopped"
+        _encSpeed = "None"
         print("Encoder stopped at count {0}".format(count))
 
 # Our interfaces
@@ -75,16 +77,16 @@ boardTemp   = system.Thermistor(adc.Pin0, Res=9980, Beta=3435)
 cpuTemp     = system.CPU()
 battery     = system.Battery(adc.Pin2)
 # Shutter is hooked up to GPIO 14
-shutter     = controls.button(shutterPin, False, printShutterButton)
-encoder     = controls.encoder(encIntPin, printEncoder)
+shutter     = controls.button(_shutterPin, False, printShutterButton)
+encoder     = controls.encoder(_encIntPin, printEncoder)
 
 
 while True:
     print("Interface Board temp: " + str(round(boardTemp.temp_F, 2)))
     print("CPU Temp: " + str(round(cpuTemp.temp_F, 2)))
     print("Battery Voltage: " + str(round(battery.voltage, 2)))
-    print("Shutter button: " + str(shutterPressed))
-    print("Encoder count: " + str(encoder.count))
-    encoder.clear_interrupts()
+    print("Shutter button: " + str(_shutterPressed))
+    print("Encoder Count: " + str(encoder.count))
     checkShutterButton()
+    encoder.clear_interrupts()
     time.sleep(10)
