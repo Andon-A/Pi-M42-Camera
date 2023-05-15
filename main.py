@@ -20,10 +20,7 @@ _encIntPin  = 17 # CHANGE THIS when it's actually connected
 _lastCount = 0 # The last count that we had our encoder at.
 _shutterPressed = False
 _encPressed = False
-_encSpeed = "None"
 _encDir = "Stopped"
-_encMidSpeed = 20 # The change for a medium speed threshold
-_encHiSpeed = 100 # The change for a high speed threshold
 
 def checkShutterButton():
     # See if our shutter button is actually
@@ -44,7 +41,7 @@ def printShutterButton(value):
     
 
 def printEncoder(pressed, count):
-    global _lastCount, _encPressed, _encSpeed, _encDir, _encMidSpeed, _encHiSpeed
+    global _lastCount, _encPressed, _encDir,
     # Nor will this.
     if pressed and not _encPressed:
         print("Encoder Pressed.")
@@ -53,22 +50,17 @@ def printEncoder(pressed, count):
         print("Encoder Released.")
         _encPressed = pressed
     if count != _lastCount:
-        countDif = count - lastCount
+        # Encoder wraps around at 65535
+        # We should take this into account.
+        countDif = count - _lastCount
         _lastCount = count
         if countDif < 0:
             _encDir = "Left"
         else:
             _encDir = "Right"
-        if countDif < _encMidSpeed:
-            _encSpeed = "Slow"
-        elif countDif < _encHiSpeed:
-            _encSpeed = "Medium"
-        else:
-            _encSpeed = "Fast"
-        print("Encoder Spun {0}, count {1}, dif {2}".format(dir, count, countDif))
+        print("Encoder Spun {0}, count {1}, dif {2}".format(_encDir, count, countDif))
     else:
         _encDir = "Stopped"
-        _encSpeed = "None"
         print("Encoder stopped at count {0}".format(count))
 
 # Our interfaces
@@ -78,7 +70,7 @@ cpuTemp     = system.CPU()
 battery     = system.Battery(adc.Pin2)
 # Shutter is hooked up to GPIO 14
 shutter     = controls.button(_shutterPin, False, printShutterButton)
-encoder     = controls.encoder(_encIntPin, printEncoder)
+encoder     = controls.encoder(_encIntPin, printEncoder, timeout=1)
 
 
 while True:

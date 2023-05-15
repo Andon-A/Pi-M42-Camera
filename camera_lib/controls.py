@@ -32,6 +32,7 @@ class button:
         return self.pressed
 
 class encoder:
+
     def __init__(self, int_pin, callback, color=(0,0,0), timeout=100):
         self.int_pin = int_pin
         self.callback = callback  # We return pressed and count
@@ -53,6 +54,7 @@ class encoder:
             self.enabled = True
             self.color = color # The RGB color of the LED
             self.timeout = timeout
+            self.count = 0
             print("Encoder initailized")
         
     @property
@@ -66,6 +68,14 @@ class encoder:
     @property
     def count(self):
         if self.enabled:
+            return self.twist.count
+        else:
+            return 0
+    
+    @count.setter
+    def count(self, count):
+        if self.enabled:
+            self.twist.count = count
             return self.twist.count
         else:
             return 0
