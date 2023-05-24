@@ -1,7 +1,8 @@
 from picamera2 import Picamera2, Preview
+from picamera2.encoders import H264Encoder
 from libcamera import Transform
 import threading
-import config
+import cam_config
 
 # Our camera setup lives here.
 

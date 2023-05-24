@@ -71,26 +71,28 @@ def update(overwrite=True):
 
     dl = False
     # Load our config file.
-    if os.path.isfile("./config/updater.cfg"):
+    if os.path.isfile("./camera_lib/config/updater.cfg"):
         print("Loading config file...")
         config = configparser.ConfigParser(allow_no_value=True)
-        config.read("./config/updater.cfg")
+        config.read("./camera_lib/config/updater.cfg")
         # And try to download the new one.
         print("Downloading update list...")
-        dl = downloadFile(config["INFO"]["ConfigURL"], "./config/updater.cfg", overwrite)
+        dl = downloadFile(config["INFO"]["ConfigURL"], "./camera_lib/config/updater.cfg", overwrite)
     # We don't have a config file, so download one.
     else:
         print("Config file not found. Downloading fallback...")
-        if not os.path.isdir("./config"):
-            os.mkdir("config")
+        if not os.path.isdir("./camera_lib"):
+            os.mkdir("camera_lib")
+        if not os.path.isdir("./camera_lib/config"):
+            os.mkdir("camera_lib/config")
         print("Downloading update list...")
-        dl = downloadFile(fallback_cfg, "./config/updater.cfg", overwrite)
+        dl = downloadFile(fallback_cfg, "./camera_lib/config/updater.cfg", overwrite)
 
     if dl:
         print("Update list downloaded.")
         # We have downloaded our file, so reload it.
         config = configparser.ConfigParser(allow_no_value=True)
-        config.read("./config/updater.cfg")
+        config.read("./camera_lib/config/updater.cfg")
         url_base = config["INFO"]["MainURL"]
         # Make our folders
         for folder in config["Folders"]:
