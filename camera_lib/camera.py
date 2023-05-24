@@ -186,7 +186,17 @@ class Camera:
     def get_video_filename(self):
         base_path = config.cfg["Info"]["VidPath"] + "VID_"
         next_vid = config.cfg["Info"].getint("NextVid")
-        filename = base_path + str(next_vid) + ".h264"
+        # Our pad keeps us at a minimum of 4 digits.
+        # If we go to 10k videos (Or images, that works the same)
+        # Then the number will expand just fine.
+        pad = ""
+        if next_vid < 10:
+            pad = "000"
+        elif next_vid < 100:
+            pad = "00"
+        elif next_vid < 1000:
+            pad = "0"
+        filename = base_path + pad + str(next_vid) + ".h264"
         next_vid += 1
         config.cfg["Info"]["NextVid"] = str(next_vid)
         config.save_config()
@@ -197,7 +207,14 @@ class Camera:
         request = self.camera.capture_request()
         base_path = config.cfg["Info"]["ImgPath"] + "IMG_"
         next_image = config.cfg["Info"].getint("NextImg")
-        filename = base_path + str(next_image)
+        pad = ""
+        if next_image < 10:
+            pad = "000"
+        elif next_image < 100:
+            pad = "00"
+        elif next_image < 1000:
+            pad = "0"
+        filename = base_path + pad + str(next_image)
         if config.cfg["Settings"].getboolean("JPEG"):
             request.save("main", filename + ".jpg")
         if config.cfg["Settings"].getboolean("DNG"):
