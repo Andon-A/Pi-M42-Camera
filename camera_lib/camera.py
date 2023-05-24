@@ -20,14 +20,14 @@ class Camera:
         self.exp_still = camera.create_still_configuration( main={"size": (4056, 3040)},
                                                             lores={"size": (800, 480)}, display="lores",
                                                             transform=Transform(hflip=1, vflip=1),
-                                                            raw={}
+                                                            raw={},
                                                             controls={"ExposureTime": self.getExposure()}
                                                             )
         
         self.iso_still = camera.create_still_configuration( main={"size": (4056, 3040)},
                                                             lores={"size": (800, 480)}, display="lores",
                                                             transform=Transform(hflip=1, vflip=1),
-                                                            raw={}
+                                                            raw={},
                                                             controls={"AnalogueGain": self.getAnalougeGain()}
                                                             )
         
@@ -35,8 +35,8 @@ class Camera:
                                                             main={"size": (4056, 3040)},
                                                             lores={"size": (800, 480)}, display="lores",
                                                             transform=Transform(hflip=1, vflip=1),
-                                                            raw={}
-                                                            controls={"ExposureTime": self.getExposure()
+                                                            raw={},
+                                                            controls={"ExposureTime": self.getExposure(),
                                                             "AnalogueGain": self.getAnalougeGain()}
                                                             )
 
@@ -51,11 +51,26 @@ class Camera:
         # What's our mode?
         # 0 is Auto
         # 1 is Video
+        self._exposure = 0
+        self._mode = 0
+        self._iso = 0
         self.mode = config.cfg["Settings"].getint("Mode")
         self.exposure = config.cfg["Settings"].getfloat("Exposure")
         self.ISO = config.cfg["Settings"].getint("ISO")
         # Set ourselves up.
         self.setConfigure()
+    
+    @property
+    def exposure(self):
+        return self._exposure
+    
+    @property
+    def mode(self):
+        return self._mode
+    
+    @property
+    def ISO(self):
+        return self._iso
     
     @exposure.setter
     def exposure(self, exp):
@@ -66,6 +81,7 @@ class Camera:
             exp = 0
         config.cfg["Settings"]["Exposure"] = str(exp)
         config.save_config()
+        self._exposure = exp
         return exp
     
     @ISO.setter
@@ -78,6 +94,7 @@ class Camera:
             iso = 1600
         config.cfg["Settings"]["ISO"] = str(iso)
         config.save_config()
+        self._iso = iso
         return iso
     
     @mode.setter
@@ -92,6 +109,7 @@ class Camera:
             newMode = int(newMode)
         config.cfg["Settings"]["Mode"] = str(newMode)
         config.save_config()
+        self._mode = newMode
         return newMode
     
     def getExposure(self):
@@ -144,7 +162,8 @@ class Camera:
         base_path = config.cfg["Info"]["VidPath"] + "VID_"
         next_vid = config.cfg["Info"].getint("NextVid")
         filename = base_path + str(next_vid) + ".h264"
-        config.cfg["Info"]["NextVid"] = str(next_vid += 1)
+        next_vid += 1
+        config.cfg["Info"]["NextVid"] = str(next_vid)
         config.save_config()
         return filename
     
@@ -159,6 +178,7 @@ class Camera:
         if config.cfg["Settings"].getboolean("DNG"):
             request.save_dng(filename + ".dng")
         request.delete
-        config.cfg["Info"]["NextImg"] = str(next_image += 1)
+        next_image += 1
+        config.cfg["Info"]["NextImg"] = str(next_image)
         config.save_config()
         return True
