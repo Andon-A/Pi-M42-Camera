@@ -27,6 +27,7 @@ These are simply setting up the interfaces, not doing anything with them.
 ### Camera
 These are the program parts that do the things, not necessarily tied in to everything
 - [X] Set up default camera profiles (Video and Still)
+- [X] Set up camera methods to control modes
 - [ ] Set up camera preview
 - [ ] Set up taking a picture and saving it as Raw and JPG
 - [ ] Set up Automatic mode
@@ -35,7 +36,7 @@ These are the program parts that do the things, not necessarily tied in to every
 - [ ] Set up ISO and Shutter mode (Encoder does both, short press to swap)
 - [ ] Set up  Video Mode
 ### Hardware Interface
-As with camera, the parts that do the things.
+As with camera, the parts that do the things, not the actual doing of things.
 - [X] Set up battery voltage monitoring for charge status
 - [X] Set up internal thermistor for heat status
 - [X] Set up CPU temperature monitoring
@@ -44,7 +45,7 @@ As with camera, the parts that do the things.
 - [ ] Watchdog that detects new software and reboots program
 ### Moderate Software
 - [ ] Overlay over the camera that gives information
-- [ ] Camera mode switching
+- [ ] Camera mode switching (Overlay required)
 ### Complex Software
 - [ ] Settings Menu
 - [ ] Wifi On and Off toggles in settings menu
