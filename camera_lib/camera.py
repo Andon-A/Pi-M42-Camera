@@ -10,40 +10,7 @@ class Camera:
     def __init__(self):
         # Start the camera
         self.camera = Picamera2()
-        # Our configurations
-        self.auto_still = camera.create_still_configuration(main={"size": (4056, 3040)},
-                                                            lores={"size": (800, 480)}, display="lores",
-                                                            transform=Transform(hflip=1, vflip=1),
-                                                            raw={}
-                                                            )
-
-        self.exp_still = camera.create_still_configuration( main={"size": (4056, 3040)},
-                                                            lores={"size": (800, 480)}, display="lores",
-                                                            transform=Transform(hflip=1, vflip=1),
-                                                            raw={},
-                                                            controls={"ExposureTime": self.getExposure()}
-                                                            )
         
-        self.iso_still = camera.create_still_configuration( main={"size": (4056, 3040)},
-                                                            lores={"size": (800, 480)}, display="lores",
-                                                            transform=Transform(hflip=1, vflip=1),
-                                                            raw={},
-                                                            controls={"AnalogueGain": self.getAnalougeGain()}
-                                                            )
-        
-        self.exp_iso_still = camera.create_still_configuration( 
-                                                            main={"size": (4056, 3040)},
-                                                            lores={"size": (800, 480)}, display="lores",
-                                                            transform=Transform(hflip=1, vflip=1),
-                                                            raw={},
-                                                            controls={"ExposureTime": self.getExposure(),
-                                                            "AnalogueGain": self.getAnalougeGain()}
-                                                            )
-
-        self.video = camera.create_video_configuration(     main={"size": (2048, 1536)},
-                                                            lores={"size": (800, 480)}, display="lores",
-                                                            transform=Transform(hflip=1, vflip=1)
-                                                            )
         # Are we recording?
         self.recording = False 
         # Video encoder
@@ -57,6 +24,41 @@ class Camera:
         self.mode = config.cfg["Settings"].getint("Mode")
         self.exposure = config.cfg["Settings"].getfloat("Exposure")
         self.ISO = config.cfg["Settings"].getint("ISO")
+        
+        # Our configurations
+        self.auto_still = self.camera.create_still_configuration(main={"size": (4056, 3040)},
+                                                            lores={"size": (800, 480)}, display="lores",
+                                                            transform=Transform(hflip=1, vflip=1),
+                                                            raw={}
+                                                            )
+
+        self.exp_still = self.camera.create_still_configuration( main={"size": (4056, 3040)},
+                                                            lores={"size": (800, 480)}, display="lores",
+                                                            transform=Transform(hflip=1, vflip=1),
+                                                            raw={},
+                                                            controls={"ExposureTime": self.getExposure()}
+                                                            )
+        
+        self.iso_still = self.camera.create_still_configuration( main={"size": (4056, 3040)},
+                                                            lores={"size": (800, 480)}, display="lores",
+                                                            transform=Transform(hflip=1, vflip=1),
+                                                            raw={},
+                                                            controls={"AnalogueGain": self.getAnalougeGain()}
+                                                            )
+        
+        self.exp_iso_still = self.camera.create_still_configuration( 
+                                                            main={"size": (4056, 3040)},
+                                                            lores={"size": (800, 480)}, display="lores",
+                                                            transform=Transform(hflip=1, vflip=1),
+                                                            raw={},
+                                                            controls={"ExposureTime": self.getExposure(),
+                                                            "AnalogueGain": self.getAnalougeGain()}
+                                                            )
+
+        self.video = self.camera.create_video_configuration(     main={"size": (2048, 1536)},
+                                                            lores={"size": (800, 480)}, display="lores",
+                                                            transform=Transform(hflip=1, vflip=1)
+                                                            )
         # Set ourselves up.
         self.setConfigure()
     
