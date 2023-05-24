@@ -9,6 +9,7 @@ import cam_config
 class Camera:
     # A wrapper for the regular camera class
     def __init__(self):
+        global cam_config
         # Start the camera
         self.camera = Picamera2()
         
@@ -22,9 +23,9 @@ class Camera:
         self._exposure = 0
         self._mode = 0
         self._iso = 0
-        self.mode = config.cfg["Settings"].getint("Mode")
-        self.exposure = config.cfg["Settings"].getfloat("Exposure")
-        self.ISO = config.cfg["Settings"].getint("ISO")
+        self.mode = cam_config.cfg["Settings"].getint("Mode")
+        self.exposure = cam_config.cfg["Settings"].getfloat("Exposure")
+        self.ISO = cam_config.cfg["Settings"].getint("ISO")
         
         # Our configurations
         self.auto_still = self.camera.create_still_configuration(main={"size": (4056, 3040)},
@@ -82,8 +83,8 @@ class Camera:
             exp = 239.00
         if exp < 0:
             exp = 0
-        config.cfg["Settings"]["Exposure"] = str(exp)
-        config.save_config()
+        cam_config.cfg["Settings"]["Exposure"] = str(exp)
+        cam_config.save_config()
         self._exposure = exp
         return exp
     
@@ -95,8 +96,8 @@ class Camera:
         # Max of 1600
         if iso > 1600:
             iso = 1600
-        config.cfg["Settings"]["ISO"] = str(iso)
-        config.save_config()
+        cam_config.cfg["Settings"]["ISO"] = str(iso)
+        cam_config.save_config()
         self._iso = iso
         return iso
     
@@ -110,8 +111,8 @@ class Camera:
             newMode = 1
         else:
             newMode = int(newMode)
-        config.cfg["Settings"]["Mode"] = str(newMode)
-        config.save_config()
+        cam_config.cfg["Settings"]["Mode"] = str(newMode)
+        cam_config.save_config()
         self._mode = newMode
         return newMode
     
