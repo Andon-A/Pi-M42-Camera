@@ -62,7 +62,7 @@ class Camera:
                                                             transform=Transform(hflip=1, vflip=1)
                                                             )
         # Set ourselves up.
-        self.setConfigure()
+        self.setConfig()
     
     @property
     def exposure(self):
@@ -116,6 +116,27 @@ class Camera:
         self._mode = newMode
         return newMode
     
+    def startCam(self):
+        # We need to set up our preview
+        # And also start the camera.
+        self.camera.start_preview(Preview.DRM, width=800, height=480)
+        self.camera.start()
+        return True
+    
+    def stopCam(self):
+        # Stop the camera
+        # And the preview.
+        self.camera.stop_preview()
+        self.camera.stop()
+        
+    def reconfigure(self):
+        # Stops the camera, reconfigures, then restarts the preview.
+        self.camera.stop()
+        self.setConfig()
+        self.camera.stop_preview()
+        self.camera.start_preview(Preview.DRM, width=800, height=480)
+        self.camera.start()
+    
     def getExposure(self):
         # self.exposure is measured in seconds
         # But we need microseconds. A second has one million microseconds
@@ -127,15 +148,15 @@ class Camera:
         # self.ISO is measured in, well. "Effective" ISO.
         # We want this to be a number for AnalogueGain
         # We treat ISO as being 100x the gain.
-        gain = ISO / 100.00
+        gain = self.ISO / 100.00
         return gain
     
     def setConfig(self):
         # Sets the configuration depending on the mode.
-        if mode == 1 and not self.recording: # Video mode. Use our video config.
+        if self.mode == 1 and not self.recording: # Video mode. Use our video config.
             # Don't change the config if we're recording
             self.camera.configure(self.video)
-        elif mode == 0: # Camera mode.
+        elif self.mode == 0: # Camera mode.
             if self.exposure > 0 and self.ISO == 0:
                 self.camera.configure(self.exp_still)
             elif self.exposure == 0 and self.ISO > 0:
@@ -149,7 +170,7 @@ class Camera:
     
     def shutter(self):
         # Video stuff. WIP.
-        self.setConfig()
+        self.reconfigure()
         if self.mode == 1 and not self.recording:
             self.recording = True
             self.camera.start_recording(encoder, self.get_video_filename())
