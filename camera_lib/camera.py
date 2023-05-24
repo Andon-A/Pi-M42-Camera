@@ -45,7 +45,7 @@ class Camera:
                                                             lores={"size": (800, 480)}, display="lores",
                                                             transform=Transform(hflip=1, vflip=1),
                                                             raw={},
-                                                            controls={"AnalogueGain": self.getAnalougeGain()}
+                                                            controls={"AnalogueGain": self.getAnalogueGain()}
                                                             )
         
         self.exp_iso_still = self.camera.create_still_configuration( 
@@ -54,7 +54,7 @@ class Camera:
                                                             transform=Transform(hflip=1, vflip=1),
                                                             raw={},
                                                             controls={"ExposureTime": self.getExposure(),
-                                                            "AnalogueGain": self.getAnalougeGain()}
+                                                            "AnalogueGain": self.getAnalogueGain()}
                                                             )
 
         self.video = self.camera.create_video_configuration(     main={"size": (2048, 1536)},
@@ -123,9 +123,9 @@ class Camera:
         exposure = self.exposure * 1000000
         return exposure
     
-    def getAnalogGain(self):
+    def getAnalogueGain(self):
         # self.ISO is measured in, well. "Effective" ISO.
-        # We want this to be a number for AnalougeGain
+        # We want this to be a number for AnalogueGain
         # We treat ISO as being 100x the gain.
         gain = ISO / 100.00
         return gain
