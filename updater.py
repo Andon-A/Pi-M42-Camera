@@ -6,7 +6,7 @@ import filecmp
 import configparser
 import socket
 
-fallback_cfg = "https://raw.githubusercontent.com/Andon-A/Pi-M42-Camera/main/config/updater.cfg"
+fallback_cfg = "https://raw.githubusercontent.com/Andon-A/Pi-M42-Camera/main/camera_lib/config/updater.cfg"
 
 # Check if we're connected to the internet.
 def isConnected():
