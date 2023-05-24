@@ -3,9 +3,11 @@
 ## General
 The following won't be included in this repository:
 - [ ] Clean up startup on Raspberry Pi
-- [ ] Set up file system correctly
+- [X] Set up file system correctly
  - [X] Set up /software folder on Pi partition
- - [ ] Set up /DCIM folder in photos partition
+ - [X] Set up /photos to be photos partition
+ - [X] Set up /Images folder in photos partition
+ - [X] Set up /Videos folder in photos partition
 - [ ] Set up Samba and WSDD on Raspberry Pi
 - [ ] Set up WSDD as a service
 - [ ] Set up main program as a service
@@ -14,17 +16,17 @@ The following won't be included in this repository:
 
 ## Hardware
 Hardware is not included in this repository (currently)
-- [ ] Design 3d printed bottom plate that includes USB-C and USB mounts
-- [ ] Design 3d printed top plate that fits new encoder, shutter button, and cold shoe.
+- [X] Design 3d printed encoder mount
+- [X] Design 3d printed top plate to hold USB port
 
 ## Software
 ### Controls
 These are simply setting up the interfaces, not doing anything with them.
 - [X] Read shutter button
-- [ ] Read Encoder
+- [X] Read Encoder
 ### Camera
 These are the program parts that do the things, not necessarily tied in to everything
-- [ ] Set up camera profiles (Video, Still, Raw, and Preview)
+- [X] Set up default camera profiles (Video and Still)
 - [ ] Set up camera preview
 - [ ] Set up taking a picture and saving it as Raw and JPG
 - [ ] Set up Automatic mode

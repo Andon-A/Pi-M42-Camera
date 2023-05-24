@@ -4,10 +4,14 @@
 
 # Run our updater.
 # Once the watchdog is in play, we'll be able to restart automatically with this, too.
-import updater
+#import updater
 #updater.update()
 
-from camera_lib import system, controls # Our own libraries
+# Set our paths
+import sys
+sys.path.append('./camera_lib')
+
+import system, controls # Our own libraries
 import time
 import RPi.GPIO as GPIO
 GPIO.setmode(GPIO.BCM)
@@ -17,10 +21,10 @@ _shutterPin = 14
 _encIntPin  = 17 # CHANGE THIS when it's actually connected
 
 # Encoder variables.
-_lastCount = 0 # The last count that we had our encoder at.
-_shutterPressed = False
-_encPressed = False
-_encDir = "Stopped"
+_lastCount = 0 # The last count that we had our encoder at. It resets when we start.
+_shutterPressed = False # The last state our shutter was at. Default to unpressed.
+_encPressed = False # The last state our encoder button was at. Default to unpressed.
+_encDir = "Stopped" # The last direction our encoder was turning.
 
 def checkShutterButton():
     # See if our shutter button is actually
@@ -51,7 +55,7 @@ def printEncoder(pressed, count):
         _encPressed = pressed
     if count != _lastCount:
         # Encoder wraps around at 65535
-        # We should take this into account.
+        # We should take this into account
         countDif = count - _lastCount
         _lastCount = count
         if countDif < 0:
@@ -68,7 +72,8 @@ adc         = system.ADC()
 boardTemp   = system.Thermistor(adc.Pin0, Res=9980, Beta=3435)
 cpuTemp     = system.CPU()
 battery     = system.Battery(adc.Pin2)
-# Shutter is hooked up to GPIO 14
+# Shutter is hooked up to GPIO 14.
+# Encoder interrupt is hooked up to 17.
 shutter     = controls.button(_shutterPin, False, printShutterButton)
 encoder     = controls.encoder(_encIntPin, printEncoder, timeout=1)
 
