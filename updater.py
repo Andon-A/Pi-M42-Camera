@@ -103,6 +103,7 @@ def update(overwrite=True):
             url = url_base + file
             print("Downloading {0}".format(url))
             target = "./" + file
+            overwrite = config["Files"].getboolean(file)
             downloadFile(url, target, overwrite)
         print("Update complete.")
         return True
