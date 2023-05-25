@@ -44,7 +44,7 @@ def printShutterButton(value):
     #checkShutterButton()
 
 def printEncoder(pressed, count):
-    global _lastCount, _encPressed, _encDir,
+    global _lastCount, _encPressed, _encDir
     # Nor will this.
     if pressed and not _encPressed:
         print("Encoder Pressed.")

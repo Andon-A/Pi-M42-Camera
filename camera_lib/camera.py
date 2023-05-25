@@ -3,6 +3,7 @@ from picamera2.encoders import H264Encoder
 from libcamera import Transform
 import threading
 import cam_config
+import os
 
 # Our camera setup lives here.
 
@@ -200,7 +201,9 @@ class Camera:
             saver.start()
     
     def get_video_filename(self):
-        base_path = cam_config.cfg["Info"]["VidPath"] + "VID_"
+        base_path = cam_config.cfg["Info"]["VidPath"]
+        if not os.path.isdir(base_path):
+            os.makedirs(base_path)
         next_vid = cam_config.cfg["Info"].getint("NextVid")
         # Our pad keeps us at a minimum of 4 digits.
         # If we go to 10k videos (Or images, that works the same)
@@ -212,7 +215,7 @@ class Camera:
             pad = "00"
         elif next_vid < 1000:
             pad = "0"
-        filename = base_path + pad + str(next_vid) + ".h264"
+        filename = base_path + "VID_" + pad + str(next_vid) + ".h264"
         next_vid += 1
         cam_config.cfg["Info"]["NextVid"] = str(next_vid)
         cam_config.save_config()
@@ -221,7 +224,9 @@ class Camera:
     def save_image(self):
         # Saves the still image as a JPEG and/or DNG as requested
         request = self.camera.capture_request()
-        base_path = cam_config.cfg["Info"]["ImgPath"] + "IMG_"
+        base_path = cam_config.cfg["Info"]["ImgPath"]
+        if not os.path.isdir(base_path):
+            os.makedirs(base_path)
         next_image = cam_config.cfg["Info"].getint("NextImg")
         pad = ""
         if next_image < 10:
@@ -230,7 +235,7 @@ class Camera:
             pad = "00"
         elif next_image < 1000:
             pad = "0"
-        filename = base_path + pad + str(next_image)
+        filename = base_path + "IMG_" + pad + str(next_image)
         if cam_config.cfg["Settings"].getboolean("JPEG"):
             print("Saving JPEG")
             request.save("main", filename + ".jpg")

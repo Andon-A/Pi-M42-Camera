@@ -97,7 +97,7 @@ def update(overwrite=True):
         # Make our folders
         for folder in config["Folders"]:
             if not os.path.isdir("./" + folder):
-                os.mkdir("./" + folder)
+                os.makedirs("./" + folder)
         # Now download our files.
         for file in config["Files"]:
             url = url_base + file
