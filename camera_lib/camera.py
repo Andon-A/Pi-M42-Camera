@@ -174,14 +174,18 @@ class Camera:
         if self.mode == 1 and not self.recording:
             self.recording = True
             self.camera.start_recording(encoder, self.get_video_filename())
+            print("Starting Video.")
         elif self.mode == 1 and self.recording:
             self.recording = False
             self.camera.stop_recording()
+            print("Stopping Video.")
         elif self.mode == 0:
             self.recoring = False # Just in case.
             # self.camera.stop_recording() # Will this error?
             # Save the picture
+            print("Starting picture save.")
             saver = threading.Thread(target=self.save_image)
+            saver.start()
     
     def get_video_filename(self):
         base_path = config.cfg["Info"]["VidPath"] + "VID_"
@@ -216,8 +220,10 @@ class Camera:
             pad = "0"
         filename = base_path + pad + str(next_image)
         if config.cfg["Settings"].getboolean("JPEG"):
+            print("Saving JPEG")
             request.save("main", filename + ".jpg")
         if config.cfg["Settings"].getboolean("DNG"):
+            print("Saving DNG")
             request.save_dng(filename + ".dng")
         request.delete
         next_image += 1
