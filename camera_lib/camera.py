@@ -134,7 +134,9 @@ class Camera:
         # Stops the camera, reconfigures, then restarts the preview.
         # Only applies if the configuration is actually different.
         new_cfg = self.getConfig()
-        if self._currentCFG != new_cfg and not self._recording:
+        if self._currentCFG == new_cfg:
+            print("Same")
+        if (self._currentCFG != new_cfg) and not self._recording:
             self.camera.stop()
             self.camera.configure(new_cfg)
             self.camera.stop_preview()
