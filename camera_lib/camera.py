@@ -30,20 +30,20 @@ class Camera:
         # Our configurations
         self.auto_still = self.camera.create_still_configuration(main={"size": (4056, 3040)},
                                                             lores={"size": (800, 480)}, display="lores",
-                                                            transform=Transform(hflip=1, vflip=1),
+                                                            # transform=Transform(hflip=1, vflip=1),
                                                             raw={}
                                                             )
 
         self.exp_still = self.camera.create_still_configuration( main={"size": (4056, 3040)},
                                                             lores={"size": (800, 480)}, display="lores",
-                                                            transform=Transform(hflip=1, vflip=1),
+                                                            # transform=Transform(hflip=1, vflip=1),
                                                             raw={},
                                                             controls={"ExposureTime": self.getExposure()}
                                                             )
         
         self.iso_still = self.camera.create_still_configuration( main={"size": (4056, 3040)},
                                                             lores={"size": (800, 480)}, display="lores",
-                                                            transform=Transform(hflip=1, vflip=1),
+                                                            # transform=Transform(hflip=1, vflip=1),
                                                             raw={},
                                                             controls={"AnalogueGain": self.getAnalogueGain()}
                                                             )
@@ -51,7 +51,7 @@ class Camera:
         self.exp_iso_still = self.camera.create_still_configuration( 
                                                             main={"size": (4056, 3040)},
                                                             lores={"size": (800, 480)}, display="lores",
-                                                            transform=Transform(hflip=1, vflip=1),
+                                                            # transform=Transform(hflip=1, vflip=1),
                                                             raw={},
                                                             controls={"ExposureTime": self.getExposure(),
                                                             "AnalogueGain": self.getAnalogueGain()}
@@ -59,7 +59,7 @@ class Camera:
 
         self.video = self.camera.create_video_configuration(     main={"size": (2048, 1536)},
                                                             lores={"size": (800, 480)}, display="lores",
-                                                            transform=Transform(hflip=1, vflip=1)
+                                                            # transform=Transform(hflip=1, vflip=1)
                                                             )
         # Set ourselves up.
         self.setConfig()
@@ -119,7 +119,7 @@ class Camera:
     def startCam(self):
         # We need to set up our preview
         # And also start the camera.
-        self.camera.start_preview(Preview.DRM, width=800, height=480)
+        self.camera.start_preview(Preview.DRM, width=800, height=480, transform=transform=Transform(hflip=1, vflip=1))
         self.camera.start()
         return True
     
@@ -225,7 +225,7 @@ class Camera:
         if cam_config.cfg["Settings"].getboolean("DNG"):
             print("Saving DNG")
             request.save_dng(filename + ".dng")
-        request.delete
+        request.release()
         next_image += 1
         cam_config.cfg["Info"]["NextImg"] = str(next_image)
         cam_config.save_config()
