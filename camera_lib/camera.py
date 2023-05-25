@@ -23,6 +23,7 @@ class Camera:
         self._exposure = 0
         self._mode = 0
         self._iso = 0
+        self._currentCFG = Null
         self.mode = cam_config.cfg["Settings"].getint("Mode")
         self.exposure = cam_config.cfg["Settings"].getfloat("Exposure")
         self.ISO = cam_config.cfg["Settings"].getint("ISO")
@@ -62,7 +63,7 @@ class Camera:
                                                             # transform=Transform(hflip=1, vflip=1)
                                                             )
         # Set ourselves up.
-        self.setConfig()
+        self.camera.configure(self.getConfig())
     
     @property
     def exposure(self):
@@ -119,7 +120,7 @@ class Camera:
     def startCam(self):
         # We need to set up our preview
         # And also start the camera.
-        self.camera.start_preview(Preview.DRM, width=800, height=480, transform=transform=Transform(hflip=1, vflip=1))
+        self.camera.start_preview(Preview.DRM, width=800, height=480, transform=Transform(hflip=1, vflip=1))
         self.camera.start()
         return True
     
@@ -131,11 +132,14 @@ class Camera:
         
     def reconfigure(self):
         # Stops the camera, reconfigures, then restarts the preview.
-        self.camera.stop()
-        self.setConfig()
-        self.camera.stop_preview()
-        self.camera.start_preview(Preview.DRM, width=800, height=480)
-        self.camera.start()
+        # Only applies if the configuration is actually different.
+        new_cfg = self.getConfig()
+        if self._currentCFG != new_cfg and not self._recording:
+            self.camera.stop()
+            self.camera.configure(new_cfg)
+            self.camera.stop_preview()
+            self.camera.start_preview(Preview.DRM, width=800, height=480, transform=Transform(hflip=1, vflip=1))
+            self.camera.start()
     
     def getExposure(self):
         # self.exposure is measured in seconds
@@ -150,37 +154,42 @@ class Camera:
         # We treat ISO as being 100x the gain.
         gain = self.ISO / 100.00
         return gain
-    
-    def setConfig(self):
-        # Sets the configuration depending on the mode.
-        if self.mode == 1 and not self.recording: # Video mode. Use our video config.
-            # Don't change the config if we're recording
-            self.camera.configure(self.video)
-        elif self.mode == 0: # Camera mode.
-            if self.exposure > 0 and self.ISO == 0:
-                self.camera.configure(self.exp_still)
-            elif self.exposure == 0 and self.ISO > 0:
-                self.camera_configure(self.iso_still)
-            elif self.exposure > 0 and self.ISO > 0:
-                self.camera_configure(self.exp_iso_still)
+        
+    def getConfig(self, mode=self.mode):
+        # Returns the correct configuration for the mode.
+        if mode == 1:
+            # Video mode.
+            return self.video
+        elif mode == 0:
+            # Camera mode.
+            if self.exposure > 0 and self.ISO > 0:
+                return self.exp_iso_still
+            elif self.exposure > 0 and self.ISO = 0:
+                return self.exp_still
+            elif self.exposure = 0 and self.ISO > 0:
+                return self.iso_still
             else:
-                self.camera.configure(self.auto_still)
+                return self.auto_still
         else:
-            pass
+            return None
     
     def shutter(self):
         # Video stuff. WIP.
         self.reconfigure()
-        if self.mode == 1 and not self.recording:
-            self.recording = True
+        if self.mode == 1 and not self._recording:
+            self._recording = True
             self.camera.start_recording(encoder, self.get_video_filename())
             print("Starting Video.")
-        elif self.mode == 1 and self.recording:
-            self.recording = False
+        elif self.mode == 1 and self._recording:
+            self._recording = False
             self.camera.stop_recording()
             print("Stopping Video.")
         elif self.mode == 0:
-            self.recoring = False # Just in case.
+            if self._recording:
+                # Stop the recording.
+                self.camera.stop_recording()
+                self._recoring = False
+                self.reconfigure()
             # self.camera.stop_recording() # Will this error?
             # Save the picture
             print("Starting picture save.")
