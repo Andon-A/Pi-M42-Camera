@@ -2,9 +2,17 @@ import configparser
 import os
 
 cfg = configparser.ConfigParser()
-cfg_path = "./config/config.cfg"
+path = os.getcwd() # Our current working path.
+if "camera_lib" not in path:
+    path += "/camera_lib"
+
+cfg_path = path + "/config/config.cfg"
+cfg_backup = path + "/config/config.backup"
 cfg.read(cfg_path)
 
+# If we don't have anything, try the backup.
+if "Settings" not in cfg and os.path.isfile(cfg_backup):
+    cfg.read(cfg_backup)
 
 # And, if we somehow still don't have things...
 
@@ -24,5 +32,9 @@ if "Info" not in cfg:
     cfg["Info"]["VidPath"] = "/photos/default/Videos"
 
 def save_config():
+    # Deletes the old backup, saves our current as the backup, then saves the new version.
+    if os.path.isfile(cfg_backup):
+        os.remove(cfg_backup)
+    os.rename(cfg_path, cfg_backup)
     with open(cfg_path, 'w') as cfgfile:
         cfg.write(cfgfile)
