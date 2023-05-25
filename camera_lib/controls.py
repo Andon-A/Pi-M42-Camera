@@ -8,17 +8,17 @@ GPIO.setmode(GPIO.BCM)
 import qwiic_twist
 
 class button:
-    def __init__(self, pin, inverted=False, callback=None):
+    def __init__(self, pin, inverted=False, bounce=100, callback=None):
         # Set up a button.
         self.pin = pin
         self.inverted = inverted
         self.callback = callback
         if self.inverted:
             GPIO.setup(self.pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-            GPIO.add_event_detect(self.pin, GPIO.BOTH, bouncetime=100, callback=self.getPressed)
+            GPIO.add_event_detect(self.pin, GPIO.BOTH, bouncetime=bounce, callback=self.getPressed)
         else:
             GPIO.setup(self.pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-            GPIO.add_event_detect(self.pin, GPIO.BOTH, bouncetime=100, callback=self.getPressed)
+            GPIO.add_event_detect(self.pin, GPIO.BOTH, bouncetime=bounce, callback=self.getPressed)
     
     @property
     def pressed(self):

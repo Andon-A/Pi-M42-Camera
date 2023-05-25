@@ -18,6 +18,7 @@ The following won't be included in this repository:
 Hardware is not included in this repository (currently)
 - [X] Design 3d printed encoder mount
 - [X] Design 3d printed top plate to hold USB port
+- [ ] Adjust sensor position for better focus (Sensor needs to go forwards)
 
 ## Software
 ### Controls
@@ -28,13 +29,13 @@ These are simply setting up the interfaces, not doing anything with them.
 These are the program parts that do the things, not necessarily tied in to everything
 - [X] Set up default camera profiles (Video and Still)
 - [X] Set up camera methods to control modes
-- [ ] Set up camera preview
-- [ ] Set up taking a picture and saving it as Raw and JPG
-- [ ] Set up Automatic mode
-- [ ] Set up ISO mode (Encoder adjusts ISO)
-- [ ] Set up Shutter Mode (Encoder adjusts Shutter speed)
-- [ ] Set up ISO and Shutter mode (Encoder does both, short press to swap)
-- [ ] Set up  Video Mode
+- [X] Set up camera preview
+- [X] Set up taking a picture and saving it as Raw and JPG
+- [X] Set up Automatic mode
+- [X] Set up ISO mode (Encoder adjusts ISO)
+- [X] Set up Shutter Mode (Encoder adjusts Shutter speed)
+- [X] Set up ISO and Shutter mode (Encoder does both, short press to swap)
+- [X] Set up  Video Mode
 ### Hardware Interface
 As with camera, the parts that do the things, not the actual doing of things.
 - [X] Set up battery voltage monitoring for charge status
