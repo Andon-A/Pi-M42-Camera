@@ -14,7 +14,7 @@ class Camera:
         self.camera = Picamera2()
         
         # Are we recording?
-        self.recording = False 
+        self._recording = False 
         # Video encoder
         self.encoder = H264Encoder(10000000)
         # What's our mode?
@@ -23,7 +23,7 @@ class Camera:
         self._exposure = 0
         self._mode = 0
         self._iso = 0
-        self._currentCFG = Null
+        self._currentCFG = None
         self.mode = cam_config.cfg["Settings"].getint("Mode")
         self.exposure = cam_config.cfg["Settings"].getfloat("Exposure")
         self.ISO = cam_config.cfg["Settings"].getint("ISO")
@@ -155,8 +155,10 @@ class Camera:
         gain = self.ISO / 100.00
         return gain
         
-    def getConfig(self, mode=self.mode):
+    def getConfig(self, mode=None):
         # Returns the correct configuration for the mode.
+        if mode is None:
+            mode = self.mode
         if mode == 1:
             # Video mode.
             return self.video
@@ -164,9 +166,9 @@ class Camera:
             # Camera mode.
             if self.exposure > 0 and self.ISO > 0:
                 return self.exp_iso_still
-            elif self.exposure > 0 and self.ISO = 0:
+            elif self.exposure > 0 and self.ISO == 0:
                 return self.exp_still
-            elif self.exposure = 0 and self.ISO > 0:
+            elif self.exposure == 0 and self.ISO > 0:
                 return self.iso_still
             else:
                 return self.auto_still
@@ -235,7 +237,9 @@ class Camera:
             print("Saving DNG")
             request.save_dng(filename + ".dng")
         request.release()
+        print("Released")
         next_image += 1
         cam_config.cfg["Info"]["NextImg"] = str(next_image)
         cam_config.save_config()
+        print("Saved config")
         return True
