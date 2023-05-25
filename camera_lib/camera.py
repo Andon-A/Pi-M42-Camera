@@ -119,6 +119,7 @@ class Camera:
         # We need to set up our preview
         # And also start the camera.
         self.camera.configure(self.getConfig())
+        self._currentCFG = self.getConfig()
         self.camera.start_preview(Preview.DRM, width=800, height=480, transform=Transform(hflip=1, vflip=1))
         self.camera.start()
         return True
@@ -133,11 +134,10 @@ class Camera:
         # Stops the camera, reconfigures, then restarts the preview.
         # Only applies if the configuration is actually different.
         new_cfg = self.getConfig()
-        if self._currentCFG == new_cfg:
-            print("Same")
         if (self._currentCFG != new_cfg) and not self._recording:
             self.camera.stop()
             self.camera.configure(new_cfg)
+            self._currentCFG = new_cfg
             self.camera.stop_preview()
             self.camera.start_preview(Preview.DRM, width=800, height=480, transform=Transform(hflip=1, vflip=1))
             self.camera.start()
