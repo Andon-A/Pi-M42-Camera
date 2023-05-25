@@ -47,6 +47,7 @@ As with camera, the parts that do the things, not the actual doing of things.
 ### Moderate Software
 - [ ] Overlay over the camera that gives information
 - [ ] Camera mode switching (Overlay required)
+- [ ] Add logging.
 ### Complex Software
 - [ ] Settings Menu
 - [ ] Wifi On and Off toggles in settings menu
