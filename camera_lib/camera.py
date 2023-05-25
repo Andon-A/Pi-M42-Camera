@@ -188,8 +188,8 @@ class Camera:
             saver.start()
     
     def get_video_filename(self):
-        base_path = config.cfg["Info"]["VidPath"] + "VID_"
-        next_vid = config.cfg["Info"].getint("NextVid")
+        base_path = cam_config.cfg["Info"]["VidPath"] + "VID_"
+        next_vid = cam_config.cfg["Info"].getint("NextVid")
         # Our pad keeps us at a minimum of 4 digits.
         # If we go to 10k videos (Or images, that works the same)
         # Then the number will expand just fine.
@@ -202,15 +202,15 @@ class Camera:
             pad = "0"
         filename = base_path + pad + str(next_vid) + ".h264"
         next_vid += 1
-        config.cfg["Info"]["NextVid"] = str(next_vid)
-        config.save_config()
+        cam_config.cfg["Info"]["NextVid"] = str(next_vid)
+        cam_config.save_config()
         return filename
     
     def save_image(self):
         # Saves the still image as a JPEG and/or DNG as requested
         request = self.camera.capture_request()
-        base_path = config.cfg["Info"]["ImgPath"] + "IMG_"
-        next_image = config.cfg["Info"].getint("NextImg")
+        base_path = cam_config.cfg["Info"]["ImgPath"] + "IMG_"
+        next_image = cam_config.cfg["Info"].getint("NextImg")
         pad = ""
         if next_image < 10:
             pad = "000"
@@ -219,14 +219,14 @@ class Camera:
         elif next_image < 1000:
             pad = "0"
         filename = base_path + pad + str(next_image)
-        if config.cfg["Settings"].getboolean("JPEG"):
+        if cam_config.cfg["Settings"].getboolean("JPEG"):
             print("Saving JPEG")
             request.save("main", filename + ".jpg")
-        if config.cfg["Settings"].getboolean("DNG"):
+        if cam_config.cfg["Settings"].getboolean("DNG"):
             print("Saving DNG")
             request.save_dng(filename + ".dng")
         request.delete
         next_image += 1
-        config.cfg["Info"]["NextImg"] = str(next_image)
-        config.save_config()
+        cam_config.cfg["Info"]["NextImg"] = str(next_image)
+        cam_config.save_config()
         return True
