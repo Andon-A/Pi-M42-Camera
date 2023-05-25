@@ -62,8 +62,6 @@ class Camera:
                                                             lores={"size": (800, 480)}, display="lores",
                                                             # transform=Transform(hflip=1, vflip=1)
                                                             )
-        # Set ourselves up.
-        self.camera.configure(self.getConfig())
     
     @property
     def exposure(self):
@@ -120,6 +118,7 @@ class Camera:
     def startCam(self):
         # We need to set up our preview
         # And also start the camera.
+        self.camera.configure(self.getConfig())
         self.camera.start_preview(Preview.DRM, width=800, height=480, transform=Transform(hflip=1, vflip=1))
         self.camera.start()
         return True
