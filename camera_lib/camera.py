@@ -237,10 +237,10 @@ class Camera:
             pad = "0"
         filename = base_path + "IMG_" + pad + str(next_image)
         if cam_config.cfg["Settings"].getboolean("JPEG"):
-            print("Saving JPEG")
+            print("Saving {0}.jpg".format(filename))
             request.save("main", filename + ".jpg")
         if cam_config.cfg["Settings"].getboolean("DNG"):
-            print("Saving DNG")
+            print("Saving {0}.dng".format(filename))
             request.save_dng(filename + ".dng")
         request.release()
         print("Released")
