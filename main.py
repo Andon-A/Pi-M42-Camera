@@ -57,8 +57,8 @@ cpuTemp     = system.CPU()
 battery     = system.Battery(adc.Pin2)
 # Shutter is hooked up to GPIO 14.
 # Encoder interrupt is hooked up to 17.
-#shutter     = controls.button(_shutterPin, False, 10, handleShutterButton)
-shutter     = controls.button(_shutterPin, bounce=10, callback=printShutterButton, wait=0.1)
+#shutter     = controls.button(_shutterPin, bounce=100, callback=handleShutterButton)
+shutter     = controls.button(_shutterPin, bounce=100, callback=printShutterButton)
 encoder     = controls.encoder(_encIntPin, printEncoderBetter, timeout=10)
 
 while True:
