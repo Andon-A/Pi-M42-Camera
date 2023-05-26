@@ -46,6 +46,8 @@ def printEncoderBetter(enc):
         elif not encoder.isPressed:
             print("Encoder released")
     enc.resetState() # Return everything to zero state.
+    print("State reset")
+    print(GPIO.input(encoder.int_pin))
         
         
 
@@ -74,7 +76,7 @@ while True:
     print("Interface Board temp: " + str(round(boardTemp.temp_F, 2)))
     print("CPU Temp: " + str(round(cpuTemp.temp_F, 2)))
     print("Battery Voltage: " + str(round(battery.voltage, 2)))
-    print GPIO.input(encoder.int_pin)
+    print(GPIO.input(encoder.int_pin))
     #checkShutterButton()
     #encoder.reset_State()
     time.sleep(2)
