@@ -101,7 +101,7 @@ def update(overwrite=True):
         # Now download our files.
         for file in config["Files"]:
             url = url_base + file
-            print("Downloading {0}".format(url))
+            print("Downloading {0}".format(file[file.rfind("/")+1:]))
             target = "./" + file
             overwrite = config["Files"].getboolean(file)
             downloadFile(url, target, overwrite)
