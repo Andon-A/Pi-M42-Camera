@@ -57,6 +57,7 @@ class encoder:
             self.color = color # The RGB color of the LED
             self.timeout = timeout
             self.count = 5
+            self.twist.clear_interrupts() # Make sure nothing is lurking.
             print("Encoder initailized")
         
     @property
@@ -117,7 +118,6 @@ class encoder:
         self.twist.clear_interrupts()
     
     def detectInput(self, channel):
-        print("Detect")
         # This is triggered when we detect an interrupt.
         if self.enabled:
             # Only do the callback if we have a callback set and we're enabled.

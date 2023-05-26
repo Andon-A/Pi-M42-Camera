@@ -74,7 +74,7 @@ battery     = system.Battery(adc.Pin2)
 # Encoder interrupt is hooked up to 17.
 #shutter     = controls.button(_shutterPin, False, 10, handleShutterButton)
 shutter     = controls.button(_shutterPin, False, 10, printShutterButton)
-encoder     = controls.encoder(_encIntPin, printEncoderBetter, timeout=1)
+encoder     = controls.encoder(_encIntPin, printEncoderBetter, timeout=10)
 
 while True:
     print("Interface Board temp: " + str(round(boardTemp.temp_F, 2)))
@@ -83,5 +83,5 @@ while True:
     print("Shutter button: " + str(_shutterPressed))
     print("Encoder Count: " + str(encoder.count))
     checkShutterButton()
-    #encoder.clear_interrupts()
-    time.sleep(10)
+    #encoder.reset_State()
+    time.sleep(1)
