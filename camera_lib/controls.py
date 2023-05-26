@@ -14,6 +14,7 @@ class button:
         self.pin = pin
         self.inverted = inverted
         self.callback = callback
+        self.isPressed = False
         if self.inverted:
             GPIO.setup(self.pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
             GPIO.add_event_detect(self.pin, GPIO.BOTH, bouncetime=bounce, callback=self.getPressed)
@@ -23,13 +24,14 @@ class button:
     
     @property
     def pressed(self):
-        status = GPIO.input(self.pin)
+        status = GPIO.input(self.pin)       
         if self.inverted:
             status = not status
         return status
     
     def getPressed(self, channel):
-        self.callback(self.pressed)
+        self.isPressed = self.pressed
+        self.callback(self)
         return self.pressed
 
 class encoder:
@@ -123,12 +125,12 @@ class encoder:
         self.count = 0
         self.direction = "None"
         self.pressedChange = False
-        counts = 0
+        # Attempt to clear our interrupts. This usually works for rotation
+        self.twist.clear_interrupts()
+        # If we're stubborn (Like, you know. The button for it.), try until we succeed.
         while self.hasInterrupt:
-            counts += 1
+            time.sleep(0.03)
             self.twist.clear_interrupts()
-            time.sleep(0.01)
-        print("Attempts needed: {0}".format(counts))
     
     def detectInput(self, channel):
         # This is triggered when we detect an interrupt.

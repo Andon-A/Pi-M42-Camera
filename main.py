@@ -20,34 +20,31 @@ GPIO.setmode(GPIO.BCM)
 _shutterPin = 14
 _encIntPin  = 17
 
-def checkShutterButton():
-    # See if our shutter button is actually
-    global _shutterPressed
-    if shutter.pressed != _shutterPressed:
-        printShutterButton(shutter.pressed)
+def checkShutterButton(btn):
+    # See if our shutter button has changed.
+    if btn.pressed != btn.isPressed:
+        # Treat this as a button press.
+        printShutterButton(btn)
 
-def printShutterButton(value):
-    global _shutterpressed
+def printShutterButton(btn):
     # This won't stay.
-    if value:
-        print("Shutter pressed.")
-    else:
-        print("Shutter released.")
-    _shutterPressed = value
-    #time.sleep(0.1)
-    #checkShutterButton()
+    # Check our button.
+    p = btn.pressed:
+    if p:
+        print("Shutter pressed")
+    elif not p:
+        print("Shutter released")
+
         
 def printEncoderBetter(enc):
     # A lot of things have been pushed back to the controls.py file
     print("Encoder direction: " + enc.direction)
-    if encoder.pressedChange:
-        if encoder.isPressed:
+    if enc.pressedChange:
+        if enc.isPressed:
             print("Encoder pressed")
-        elif not encoder.isPressed:
+        elif not enc.isPressed:
             print("Encoder released")
     enc.resetState() # Return everything to zero state.
-    print("State reset")
-    print(GPIO.input(encoder.int_pin))
         
         
 
