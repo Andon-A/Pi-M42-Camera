@@ -44,7 +44,7 @@ def printShutterButton(value):
     #checkShutterButton()
 
 def printEncoder(pressed, count):
-    global _lastCount, _encPressed, _encDir
+    global _lastCount, _encPressed, _encDir, encoder
     # Nor will this.
     if pressed and not _encPressed:
         print("Encoder Pressed.")
@@ -56,7 +56,7 @@ def printEncoder(pressed, count):
         # Take into account the fact that there's no negatives.
         # Count simply goes up to 65535 and goes back to 0
         # Or vice versa
-        if count > 65500 and _lastcount < 100:
+        if count > 65500 and _lastCexount < 100:
             count = count - 65535
         countDif = count - _lastCount
         _lastCount = count
@@ -65,9 +65,11 @@ def printEncoder(pressed, count):
         else:
             _encDir = "Right"
         print("Encoder Spun {0}, count {1}, dif {2}".format(_encDir, count, countDif))
+        encoder.clear_interrupts()
     else:
         _encDir = "Stopped"
         print("Encoder stopped at count {0}".format(count))
+        encoder.clear_interrupts()
 
 # Camera
 cam = camera.Camera()
