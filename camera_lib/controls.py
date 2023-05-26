@@ -54,7 +54,7 @@ class encoder:
             self.enabled = True
             self.color = color # The RGB color of the LED
             self.timeout = timeout
-            self.count = 0
+            self.count = 5
             print("Encoder initailized")
         
     @property

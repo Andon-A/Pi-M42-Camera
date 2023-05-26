@@ -42,38 +42,22 @@ def printShutterButton(value):
     _shutterPressed = value
     #time.sleep(0.1)
     #checkShutterButton()
-
-def printEncoder(pressed, count):
-    global _lastCount, _encPressed, _encDir, encoder
-    # Nor will this.
-    if pressed and not _encPressed:
-        print("Encoder Pressed.")
-        _encPressed = pressed
-    if not pressed and _encPressed:
-        print("Encoder Released.")
-        _encPressed = pressed
-    if count != _lastCount:
-        # Take into account the fact that there's no negatives.
-        # Count simply goes up to 65535 and goes back to 0
-        # Or vice versa
-        if count > 65500 and _lastCexount < 100:
-            count = count - 65535
-        countDif = count - _lastCount
-        _lastCount = count
-        if countDif < 0:
-            _encDir = "Left"
-        else:
-            _encDir = "Right"
-        print("Encoder Spun {0}, count {1}, dif {2}".format(_encDir, count, countDif))
-        encoder.clear_interrupts()
-    else:
-        _encDir = "Stopped"
-        print("Encoder stopped at count {0}".format(count))
-        encoder.clear_interrupts()
+        
+def printEncoderBetter(enc):
+    # A lot of things have been pushed back to the controls.py file
+    print("Encoder direction: " + enc.direction)
+    if encoder.pressedChange:
+        if encoder.isPressed:
+            print("Encoder pressed")
+        elif not encoder.isPressed:
+            print("Encoder released")
+    enc.resetState() # Return everything to zero state.
+        
+        
 
 # Camera
-cam = camera.Camera()
-cam.startCam()
+#cam = camera.Camera()
+#cam.startCam()
 
 def handleShutterButton(value):
     # This will need a lot of work to be good.
@@ -90,7 +74,7 @@ battery     = system.Battery(adc.Pin2)
 # Encoder interrupt is hooked up to 17.
 #shutter     = controls.button(_shutterPin, False, 10, handleShutterButton)
 shutter     = controls.button(_shutterPin, False, 10, printShutterButton)
-encoder     = controls.encoder(_encIntPin, printEncoder, timeout=1)
+encoder     = controls.encoder(_encIntPin, printEncoderBetter, timeout=1)
 
 while True:
     print("Interface Board temp: " + str(round(boardTemp.temp_F, 2)))
@@ -99,5 +83,5 @@ while True:
     print("Shutter button: " + str(_shutterPressed))
     print("Encoder Count: " + str(encoder.count))
     checkShutterButton()
-    encoder.clear_interrupts()
+    #encoder.clear_interrupts()
     time.sleep(10)
