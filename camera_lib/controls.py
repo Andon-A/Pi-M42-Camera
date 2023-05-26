@@ -3,6 +3,7 @@
 # Our GPIO setup
 import RPi.GPIO as GPIO
 GPIO.setmode(GPIO.BCM)
+import time
 
 # Out I2C setup. We use Sparkfun's qwiic system.
 import qwiic_twist
@@ -84,6 +85,13 @@ class encoder:
             return 0
         
     @property
+    def hasInterrupt(self):
+        if GPIO.input(self.int_pin) == 0:
+            return True
+        else:
+            return False
+        
+    @property
     def color(self):
         return self._color
     
@@ -115,7 +123,12 @@ class encoder:
         self.count = 0
         self.direction = "None"
         self.pressedChange = False
-        self.twist.clear_interrupts()
+        counts = 0
+        while self.hasInterrupt:
+            counts += 1
+            self.twist.clear_interrupts()
+            time.sleep(0.01)
+        print("Attempts needed: {0}".format(counts))
     
     def detectInput(self, channel):
         # This is triggered when we detect an interrupt.
