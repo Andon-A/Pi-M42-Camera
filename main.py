@@ -20,16 +20,11 @@ GPIO.setmode(GPIO.BCM)
 _shutterPin = 14
 _encIntPin  = 17
 
-def checkShutterButton(btn):
-    # See if our shutter button has changed.
-    if btn.pressed != btn.isPressed:
-        # Treat this as a button press.
-        printShutterButton(btn)
-
-def printShutterButton(btn):
+def printShutterButton(btn, wait):
     # This won't stay.
     # Check our button.
-    p = btn.pressed:
+    time.sleep(wait)
+    p = btn.pressed
     if p:
         print("Shutter pressed")
     elif not p:
@@ -66,7 +61,7 @@ battery     = system.Battery(adc.Pin2)
 # Shutter is hooked up to GPIO 14.
 # Encoder interrupt is hooked up to 17.
 #shutter     = controls.button(_shutterPin, False, 10, handleShutterButton)
-shutter     = controls.button(_shutterPin, False, 10, printShutterButton)
+shutter     = controls.button(_shutterPin, bounce=10, callback=printShutterButton, wait=0.1)
 encoder     = controls.encoder(_encIntPin, printEncoderBetter, timeout=10)
 
 while True:
