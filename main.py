@@ -20,15 +20,12 @@ GPIO.setmode(GPIO.BCM)
 _shutterPin = 14
 _encIntPin  = 17
 
-def printShutterButton(btn, wait):
+def printShutterButton(btn):
     # This won't stay.
     # Check our button.
-    time.sleep(wait)
     p = btn.pressed
     if p:
         print("Shutter pressed")
-    elif not p:
-        print("Shutter released")
 
         
 def printEncoderBetter(enc):
