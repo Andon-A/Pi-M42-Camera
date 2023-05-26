@@ -18,13 +18,7 @@ GPIO.setmode(GPIO.BCM)
 
 # Pin assignments
 _shutterPin = 14
-_encIntPin  = 17 # CHANGE THIS when it's actually connected
-
-# Encoder variables.
-_lastCount = 0 # The last count that we had our encoder at. It resets when we start.
-_shutterPressed = False # The last state our shutter was at. Default to unpressed.
-_encPressed = False # The last state our encoder button was at. Default to unpressed.
-_encDir = "Stopped" # The last direction our encoder was turning.
+_encIntPin  = 17
 
 def checkShutterButton():
     # See if our shutter button is actually
@@ -80,8 +74,7 @@ while True:
     print("Interface Board temp: " + str(round(boardTemp.temp_F, 2)))
     print("CPU Temp: " + str(round(cpuTemp.temp_F, 2)))
     print("Battery Voltage: " + str(round(battery.voltage, 2)))
-    print("Shutter button: " + str(_shutterPressed))
-    print("Encoder Count: " + str(encoder.count))
-    checkShutterButton()
+    print GPIO.input(encoder.int_pin)
+    #checkShutterButton()
     #encoder.reset_State()
-    time.sleep(1)
+    time.sleep(2)
