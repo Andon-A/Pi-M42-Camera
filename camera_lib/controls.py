@@ -35,12 +35,14 @@ class encoder:
 
     def __init__(self, int_pin, callback, color=(0,0,0), timeout=100):
         self.int_pin = int_pin
-        self.callback = callback  # We return pressed and count
-        self._color = (0,0,0)     # Our LED color. Default to nothing, it's set later.
-        self._timeout = -1        # How long we wait (ms) after the encoder has stopped moving to ping.
-                                  # Again, default to a bad value, and we'll be set later.
-        self.enabled = False      # Has our encoder properly enabled?
-         
+        self.callback = callback    # We return pressed and count
+        self._color = (0,0,0)       # Our LED color. Default to nothing, it's set later.
+        self._timeout = -1          # How long we wait (ms) after the encoder has stopped moving to ping.
+                                    # Again, default to a bad value, and we'll be set later.
+        self.enabled = False        # Has our encoder properly enabled?
+        self.isPressed = False      # Is our button (still) pressed?
+        self.direction = "None"     # What direction did we last move?
+        self.pressedChange = False  # Has our pressed state changed?
         # We want to set up our interrupt pin as a pullup.
         GPIO.setup(self.int_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
         # We also only care when it goes down.
@@ -108,7 +110,10 @@ class encoder:
             self.twist.set_int_timeout(ms)
             self._timeout = ms
     
-    def clear_interrupts(self):
+    def resetState(self):
+        self.count = 0
+        self.direction = "None"
+        self.pressedChange = False
         self.twist.clear_interrupts()
     
     def detectInput(self, channel):
@@ -116,7 +121,17 @@ class encoder:
         # This is triggered when we detect an interrupt.
         if self.enabled:
             # Only do the callback if we have a callback set and we're enabled.
-            self.callback(self.pressed, self.count)
-            self.twist.clear_interrupts()
+            if self.pressed and not self.isPressed:
+                self.isPressed = True
+                self.pressedChange = True
+            elif not self.pressed and self.isPressed:
+                self.isPressed = False
+                self.pressedChange = True
+            r = self.count - 5 # We know where this starts. Negative = left, positive = right
+            if r > 0:
+                self.direction = "Right"
+            elif r < 0:
+                self.direction = "Left"
+            self.callback(self)
         
     
