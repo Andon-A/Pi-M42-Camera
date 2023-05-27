@@ -24,30 +24,25 @@ _encIntPin  = 17
 # Are we in settings?
 _settingsMode = False
 
-def printShutterButton(btn):
-    # This won't stay.
-    # Check our button.
-    p = btn.pressed
-    if p:
-        print("Shutter pressed")
+# Did we have an interrupt fire when another one was firing?
+_encPriority = False
 
-        
-def printEncoderBetter(enc):
-    # A lot of things have been pushed back to the controls.py file
-    print("Encoder direction: " + enc.direction)
-    if enc.pressedChange:
-        if enc.isPressed:
-            print("Encoder pressed")
-        elif not enc.isPressed:
-            print("Encoder released")
-    enc.resetState() # Return everything to zero state.
+# Our interfaces
+adc         = system.ADC()
+boardTemp   = system.Thermistor(adc.Pin0, Res=9980, Beta=3435)
+cpuTemp     = system.CPU()
+battery     = system.Battery(adc.Pin2)
+# Shutter is hooked up to GPIO 14.
+# Encoder interrupt is hooked up to 17.
+shutter     = controls.button(_shutterPin, bounce=100, callback=handleShutterButton)
+encoder     = controls.encoder(_encIntPin, timeout=10, callback=handleEncoder)
 
 # Camera
 #cam = camera.Camera()
 #cam.startCam()
         
 def handleEncoder(enc):
-    global _encTimer, _settingsMode
+    global _settingsMode, _encPriority
     # Handle's the encoder's direction.
     print("Dir: {0}, Pressed: {1}".format(enc.direction, enc.isPressed))
     sel = None
@@ -62,44 +57,41 @@ def handleEncoder(enc):
     # Handle the button press.
     if enc.pressedChange and enc.pressed:
         encTimer = time.monotonic() # When we started listening.
-        while enc.pressed: # Read the pressed state directly and wait until it changes.
-            pass
-        # how long have we been pressed?
         t = time.monotonic() - encTimer
+        while enc.pressed and t <= 5.0: # Wait until we have gone for 5 seconds or we release.
+            time.sleep(0.1)
+            t = time.monotonic() - encTimer
+        # how long have we been pressed?
         if t >= 5.0: # If we've been pressed for 5 or more seconds, enter or leave settings menu.
             _settingsMode = not _settingsMode
+            if _settingsMode:
+                print("Entering Settings Mode")
+            elif not _settingsMode:
+                print("Exiting Settings Mode")
         else:
             menu.liveMenu.nextMenu()
-            sel = menu.liveMenu.getcurrentSelect()
+            sel = menu.liveMenu.getCurrentSelect()
             print("Switched to menu {0}".format(sel[0]))
+    _encPriority = True
     enc.resetState()
     # Now we need to handle our items.
     
 
 def handleShutterButton(value):
+    global _encPriority
     # This will need a lot of work to be good.
     # But it'll do for now.
-    if value:
+    if value and not _encPriority:
+        # Ignore any presses if we have the encoder button pressed at the same time.
         print("Click")
         # cam.shutter()
 
-# Our interfaces
-adc         = system.ADC()
-boardTemp   = system.Thermistor(adc.Pin0, Res=9980, Beta=3435)
-cpuTemp     = system.CPU()
-battery     = system.Battery(adc.Pin2)
-# Shutter is hooked up to GPIO 14.
-# Encoder interrupt is hooked up to 17.
-shutter     = controls.button(_shutterPin, bounce=100, callback=handleShutterButton)
-encoder     = controls.encoder(_encIntPin, timeout=10, callback=handleEncoder)
-#shutter     = controls.button(_shutterPin, bounce=100, callback=printShutterButton)
-#encoder     = controls.encoder(_encIntPin, printEncoderBetter, timeout=10)
-
 while True:
-    print("Interface Board temp: " + str(round(boardTemp.temp_F, 2)))
-    print("CPU Temp: " + str(round(cpuTemp.temp_F, 2)))
-    print("Battery Voltage: " + str(round(battery.voltage, 2)))
-    print(GPIO.input(encoder.int_pin))
+    #print("Interface Board temp: " + str(round(boardTemp.temp_F, 2)))
+    #print("CPU Temp: " + str(round(cpuTemp.temp_F, 2)))
+    #print("Battery Voltage: " + str(round(battery.voltage, 2)))
+    #print(GPIO.input(encoder.int_pin))
     #checkShutterButton()
     #encoder.reset_State()
-    time.sleep(2)
+    time.sleep(0.1)
+    _encPriority = False

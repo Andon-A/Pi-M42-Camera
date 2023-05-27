@@ -35,7 +35,7 @@ class basicMenu:
     
     def nextMenu(self):
         # Save our current selection.
-        self._selectedOptions[self._menuSelect] = selv._optionSelect
+        self._selectedOptions[self._menuSelect] = self._optionSelect
         # Select our next menu
         self._menuSelect += 1
         # Roll over if we have gone too far.
