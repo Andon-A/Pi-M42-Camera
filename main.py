@@ -191,6 +191,7 @@ def updateRegOverlay():
     overlay = np.zeros((800, 480, 4), dtype=np.uint8)
     cv2.putText(overlay, str("ISO: {0}\nExposure: {1}".format(cam.ISO, cam.exposure)), origin,
                 font, scale, color, thickness)
+    np.rot90(overlay, 2)
     cam.camera.set_overlay(overlay)
     
     
@@ -199,7 +200,7 @@ def updateRegOverlay():
 # Encoder interrupt is hooked up to 17.
 shutter     = controls.button(_shutterPin, bounce=250, callback=handleShutterButton)
 encoder     = controls.encoder(_encIntPin, timeout=10, callback=handleEncoder)
-encoder.resetState() # Make sure we clear any lurking interrupts
+#encoder.resetState() # Make sure we clear any lurking interrupts
 
 # Camera
 cam = camera.Camera()
@@ -209,13 +210,15 @@ while True:
     #print("Interface Board temp: " + str(round(boardTemp.temp_F, 2)))
     #print("CPU Temp: " + str(round(cpuTemp.temp_F, 2)))
     #print("Battery Voltage: " + str(round(battery.voltage, 2)))
-    #print(GPIO.input(encoder.int_pin))
+    print(GPIO.input(encoder.int_pin))
     #checkShutterButton()
     #encoder.reset_State()
     time.sleep(0.2)
     if (time.monotonic() > _lastEnc + 0.5) and _needsConfig:
         cam.reconfigure()
         _needsConfig = False
+    if time.monotonic() > _lastenc + 2:
+        encoder.resetState() # Clear lurking interrupts after a few seconds.
     _encPriority = False
     updateRegOverlay()
-    encoder.resetState() # Don't want any lurking interrupts
+    #encoder.resetState() # Don't want any lurking interrupts

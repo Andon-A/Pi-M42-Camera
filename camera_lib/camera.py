@@ -33,12 +33,12 @@ class Camera:
         # Our configurations
         self.auto_still = self.camera.create_still_configuration(main={"size": (4056, 3040)},
                                                             lores={"size": (800, 480)}, display="lores",
-                                                            raw={}, buffer_count=2
+                                                            raw={}, buffer_count=2,
                                                             )
 
         self.exp_still = self.camera.create_still_configuration( main={"size": (4056, 3040)},
                                                             lores={"size": (800, 480)}, display="lores",
-                                                            raw={}, buffer_count=2
+                                                            raw={}, buffer_count=2,
                                                             controls={"ExposureTime": self.getExposure()}
                                                             )
         
@@ -51,7 +51,7 @@ class Camera:
         self.exp_iso_still = self.camera.create_still_configuration( 
                                                             main={"size": (4056, 3040)},
                                                             lores={"size": (800, 480)}, display="lores",
-                                                            raw={}, buffer_count=2
+                                                            raw={}, buffer_count=2,
                                                             controls={"ExposureTime": self.getExposure(),
                                                             "AnalogueGain": self.getAnalogueGain()}
                                                             )
