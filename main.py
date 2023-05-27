@@ -32,10 +32,6 @@ adc         = system.ADC()
 boardTemp   = system.Thermistor(adc.Pin0, Res=9980, Beta=3435)
 cpuTemp     = system.CPU()
 battery     = system.Battery(adc.Pin2)
-# Shutter is hooked up to GPIO 14.
-# Encoder interrupt is hooked up to 17.
-shutter     = controls.button(_shutterPin, bounce=100, callback=handleShutterButton)
-encoder     = controls.encoder(_encIntPin, timeout=10, callback=handleEncoder)
 
 # Camera
 #cam = camera.Camera()
@@ -43,6 +39,7 @@ encoder     = controls.encoder(_encIntPin, timeout=10, callback=handleEncoder)
         
 def handleEncoder(enc):
     global _settingsMode, _encPriority
+    _encPriority = True
     # Handle's the encoder's direction.
     print("Dir: {0}, Pressed: {1}".format(enc.direction, enc.isPressed))
     sel = None
@@ -56,6 +53,7 @@ def handleEncoder(enc):
         print("Selected {1} from {0}".format(sel[0], sel[1]))
     # Handle the button press.
     if enc.pressedChange and enc.pressed:
+        print("Pressed")
         encTimer = time.monotonic() # When we started listening.
         t = time.monotonic() - encTimer
         while enc.pressed and t <= 5.0: # Wait until we have gone for 5 seconds or we release.
@@ -72,7 +70,6 @@ def handleEncoder(enc):
             menu.liveMenu.nextMenu()
             sel = menu.liveMenu.getCurrentSelect()
             print("Switched to menu {0}".format(sel[0]))
-    _encPriority = True
     enc.resetState()
     # Now we need to handle our items.
     
@@ -85,6 +82,11 @@ def handleShutterButton(value):
         # Ignore any presses if we have the encoder button pressed at the same time.
         print("Click")
         # cam.shutter()
+        
+# Shutter is hooked up to GPIO 14.
+# Encoder interrupt is hooked up to 17.
+shutter     = controls.button(_shutterPin, bounce=100, callback=handleShutterButton)
+encoder     = controls.encoder(_encIntPin, timeout=10, callback=handleEncoder)
 
 while True:
     #print("Interface Board temp: " + str(round(boardTemp.temp_F, 2)))
@@ -93,5 +95,5 @@ while True:
     #print(GPIO.input(encoder.int_pin))
     #checkShutterButton()
     #encoder.reset_State()
-    time.sleep(0.1)
+    time.sleep(0.2)
     _encPriority = False
