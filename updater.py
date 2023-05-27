@@ -111,3 +111,5 @@ def update(overwrite=True):
     else:
         print("Update list download failed. Aborting.")
         return False
+        
+update()

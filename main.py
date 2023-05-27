@@ -15,6 +15,7 @@ import system, controls, camera, menu # Our own libraries
 import time
 import RPi.GPIO as GPIO
 GPIO.setmode(GPIO.BCM)
+import numpy as np
 
 # Pin assignments
 _shutterPin = 14
@@ -34,10 +35,6 @@ adc         = system.ADC()
 boardTemp   = system.Thermistor(adc.Pin0, Res=9980, Beta=3435)
 cpuTemp     = system.CPU()
 battery     = system.Battery(adc.Pin2)
-
-# Camera
-cam = camera.Camera()
-cam.startCam()
 
 def menuNextOption():
     # Selects the next option from the appropriate menu.
@@ -166,6 +163,7 @@ def handleEncoder(enc):
         else:
             menuNextMenu()
             print("Switched to menu {0}".format(getCurrentSelectMenu()[0]))
+    time.sleep(0.02) # Make sure we don't overwhelm the i2c bus
     enc.resetState()
     # Now we need to handle our items.
     
@@ -178,11 +176,31 @@ def handleShutterButton(value):
         # Ignore any presses if we have the encoder button pressed at the same time.
         print("Click")
         # cam.shutter()
-        
+
+def updateRegOverlay():
+    # Creates and assigns the overlay for the base info
+    # Text info
+    color = (255, 255, 255, 255)
+    origin = (10, 30)
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    scale = 1
+    thickness = 2
+    overlay = np.zeros((800, 480, 4), dtype=np.uint8)
+    cv2.putText(overlay, str("ISO: {0}\nExposure: {1}".format(cam.ISO, cam.exposure)), origin,
+                font, scale, color, thickness)
+    picam2.set_overlay(overlay)
+    
+    
+
 # Shutter is hooked up to GPIO 14.
 # Encoder interrupt is hooked up to 17.
 shutter     = controls.button(_shutterPin, bounce=250, callback=handleShutterButton)
 encoder     = controls.encoder(_encIntPin, timeout=10, callback=handleEncoder)
+encoder.resetState() # Make sure we clear any lurking interrupts
+
+# Camera
+cam = camera.Camera()
+cam.startCam()
 
 while True:
     #print("Interface Board temp: " + str(round(boardTemp.temp_F, 2)))
@@ -192,7 +210,9 @@ while True:
     #checkShutterButton()
     #encoder.reset_State()
     time.sleep(0.2)
-    if (time.monotonic > _lastEnc + 0.2) and _needsConfig:
+    if (time.monotonic() > _lastEnc + 0.5) and _needsConfig:
         cam.reconfigure()
         _needsConfig = False
     _encPriority = False
+    updateRegOverlay()
+    encoder.resetState() # Don't want any lurking interrupts
