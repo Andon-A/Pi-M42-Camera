@@ -15,6 +15,9 @@ import system, controls, camera, menu # Our own libraries
 import time
 import RPi.GPIO as GPIO
 GPIO.setmode(GPIO.BCM)
+
+# For our overlay
+import cv2
 import numpy as np
 
 # Pin assignments
@@ -188,7 +191,7 @@ def updateRegOverlay():
     overlay = np.zeros((800, 480, 4), dtype=np.uint8)
     cv2.putText(overlay, str("ISO: {0}\nExposure: {1}".format(cam.ISO, cam.exposure)), origin,
                 font, scale, color, thickness)
-    picam2.set_overlay(overlay)
+    cam.camera.set_overlay(overlay)
     
     
 

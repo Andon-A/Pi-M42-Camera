@@ -33,36 +33,33 @@ class Camera:
         # Our configurations
         self.auto_still = self.camera.create_still_configuration(main={"size": (4056, 3040)},
                                                             lores={"size": (800, 480)}, display="lores",
-                                                            # transform=Transform(hflip=1, vflip=1),
-                                                            raw={}
+                                                            raw={}, buffer_count=2
                                                             )
 
         self.exp_still = self.camera.create_still_configuration( main={"size": (4056, 3040)},
                                                             lores={"size": (800, 480)}, display="lores",
-                                                            # transform=Transform(hflip=1, vflip=1),
-                                                            raw={},
+                                                            raw={}, buffer_count=2
                                                             controls={"ExposureTime": self.getExposure()}
                                                             )
         
         self.iso_still = self.camera.create_still_configuration( main={"size": (4056, 3040)},
                                                             lores={"size": (800, 480)}, display="lores",
-                                                            # transform=Transform(hflip=1, vflip=1),
-                                                            raw={},
+                                                            raw={}, buffer_count=2,
                                                             controls={"AnalogueGain": self.getAnalogueGain()}
                                                             )
         
         self.exp_iso_still = self.camera.create_still_configuration( 
                                                             main={"size": (4056, 3040)},
                                                             lores={"size": (800, 480)}, display="lores",
-                                                            # transform=Transform(hflip=1, vflip=1),
-                                                            raw={},
+                                                            raw={}, buffer_count=2
                                                             controls={"ExposureTime": self.getExposure(),
                                                             "AnalogueGain": self.getAnalogueGain()}
                                                             )
 
-        self.video = self.camera.create_video_configuration(     main={"size": (2048, 1536)},
+        self.video = self.camera.create_video_configuration(
+                                                            main={"size": (2048, 1536)},
                                                             lores={"size": (800, 480)}, display="lores",
-                                                            # transform=Transform(hflip=1, vflip=1)
+                                                            buffer_count=2
                                                             )
     
     @property
