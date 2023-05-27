@@ -141,10 +141,10 @@ def handleEncoder(enc):
     sel = None
     if enc.direction == "Left":
         menuPrevOption()
-        handleAdjust(getCurrentSelectMenu)
+        handleAdjust(getCurrentSelectMenu())
     elif enc.direction == "Right":
         menuNextOption()
-        handleAdjust(getCurrentSelectMenu)
+        handleAdjust(getCurrentSelectMenu())
     # Handle the button press.
     if enc.pressedChange and enc.pressed:
         print("Pressed")
