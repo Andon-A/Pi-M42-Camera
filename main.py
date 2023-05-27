@@ -26,6 +26,8 @@ _settingsMode = False
 
 # Did we have an interrupt fire when another one was firing?
 _encPriority = False
+_lastEnc = 0
+_needsConfig = False
 
 # Our interfaces
 adc         = system.ADC()
@@ -89,6 +91,7 @@ def handleAdjust(item):
     
 def handleLiveMenu(menu, item):
     # Converts our ISO or Exposure and passes them to the camera.
+    global _needsConfig
     iso = None
     exp = None
     if menu == "ISO":
@@ -99,7 +102,7 @@ def handleLiveMenu(menu, item):
         if iso != cam.ISO:
             cam.ISO = iso
             print("Updating camera ISO to {0}".format(iso))
-            cam.reconfigure()
+            _needsConfig = True
             return True
         else:
             return False
@@ -116,7 +119,7 @@ def handleLiveMenu(menu, item):
         if exp != cam.exposure:
             cam.exposure = exp
             print("Updating camera exposure to {0}".format(exp))
-            cam.reconfigure()
+            _needsConfig = True
             return True
         else:
             return False
@@ -129,13 +132,14 @@ def handleLiveMenu(menu, item):
         if m != cam.mode:
             cam.mode = m
             print("Setting camera mode to {0}".format(item))
-            cam.reconfigure()
+            _needsConfig = True
             return True
         else:
             return False
         
 def handleEncoder(enc):
-    global _settingsMode, _encPriority
+    global _settingsMode, _encPriority, _lastEnc
+    _lastEnc = time.monotonic()
     _encPriority = True
     # Handle's the encoder's direction.
     if enc.direction == "Left":
@@ -177,7 +181,7 @@ def handleShutterButton(value):
         
 # Shutter is hooked up to GPIO 14.
 # Encoder interrupt is hooked up to 17.
-shutter     = controls.button(_shutterPin, bounce=100, callback=handleShutterButton)
+shutter     = controls.button(_shutterPin, bounce=250, callback=handleShutterButton)
 encoder     = controls.encoder(_encIntPin, timeout=10, callback=handleEncoder)
 
 while True:
@@ -188,4 +192,7 @@ while True:
     #checkShutterButton()
     #encoder.reset_State()
     time.sleep(0.2)
+    if (time.monotonic > _lastEnc + 0.2) and _needsConfig:
+        cam.reconfigure()
+        _needsConfig = False
     _encPriority = False
