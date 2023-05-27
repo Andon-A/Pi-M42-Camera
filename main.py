@@ -47,16 +47,17 @@ def menuNextOption():
     else:
         menu.liveMenu.nextOption()
 
-def menuPrevOption()
+def menuPrevOption():
     # Previous option from the appropriate menu.
     global _settingsMode
     if _settingsMode:
         # TODO: Settings menu
         # menu.settingsMenu.nextOption()
+        menu.liveMenu.nextOption()
     else:
         menu.liveMenu.nextOption()
 
-def menuNextMenu()
+def menuNextMenu():
     # Next menu item
     global _settingsMode
     if _settingsMode:
@@ -66,7 +67,7 @@ def menuNextMenu()
     else:
         menu.liveMenu.nextMenu()
 
-def getCurrentSelectMenu()
+def getCurrentSelectMenu():
     # Gets the current item from the appropriate menu
     global _settingsMode
     if _settingsMode:
@@ -140,11 +141,10 @@ def handleEncoder(enc):
     sel = None
     if enc.direction == "Left":
         menuPrevOption()
-        handleAdjust(getcurrentSelectMenu)
+        handleAdjust(getCurrentSelectMenu)
     elif enc.direction == "Right":
-        menu.liveMenu.nextOption()
-        sel = menu.liveMenu.getCurrentSelect()
-        print("Selected {1} from {0}".format(sel[0], sel[1]))
+        menuNextOption()
+        handleAdjust(getCurrentSelectMenu)
     # Handle the button press.
     if enc.pressedChange and enc.pressed:
         print("Pressed")
@@ -161,8 +161,7 @@ def handleEncoder(enc):
             elif not _settingsMode:
                 print("Exiting Settings Mode")
         else:
-            menuNextMenu
-            sel = menu.liveMenu.getCurrentSelect()
+            menuNextMenu()
             print("Switched to menu {0}".format(sel[0]))
     enc.resetState()
     # Now we need to handle our items.
