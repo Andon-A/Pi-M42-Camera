@@ -147,7 +147,7 @@ class Camera:
         # self.exposure is measured in seconds
         # But we need microseconds. A second has one million microseconds
         # No error or mode checking here, it's done elsewhere.
-        exposure = self.exposure * 1000000
+        exposure = int(round(self.exposure * 1000000))
         return exposure
     
     def getAnalogueGain(self):

@@ -34,19 +34,113 @@ cpuTemp     = system.CPU()
 battery     = system.Battery(adc.Pin2)
 
 # Camera
-#cam = camera.Camera()
-#cam.startCam()
+cam = camera.Camera()
+cam.startCam()
+
+def menuNextOption():
+    # Selects the next option from the appropriate menu.
+    global _settingsMode
+    if _settingsMode:
+        # TODO: Settings menu.
+        # menu.settingsMenu.nextOption()
+        menu.liveMenu.nextOption()
+    else:
+        menu.liveMenu.nextOption()
+
+def menuPrevOption()
+    # Previous option from the appropriate menu.
+    global _settingsMode
+    if _settingsMode:
+        # TODO: Settings menu
+        # menu.settingsMenu.nextOption()
+    else:
+        menu.liveMenu.nextOption()
+
+def menuNextMenu()
+    # Next menu item
+    global _settingsMode
+    if _settingsMode:
+        # TODO: Settings menu
+        # menu.settingsMenu.nextMenu()
+        menu.liveMenu.nextMenu()
+    else:
+        menu.liveMenu.nextMenu()
+
+def getCurrentSelectMenu()
+    # Gets the current item from the appropriate menu
+    global _settingsMode
+    if _settingsMode:
+        # TODO: Settings menu
+        # menu.settingsMenu.getCurrentSelect()
+        menu.liveMenu.getCurrentSelect()
+    else:
+        menu.liveMenu.getCurrentSelect()
+        
+def handleAdjust(item):
+    # Sets things depending on what the menu was.
+    global _settingsMode
+    if _settingsMode:
+        # TODO: Settings menu
+        # handleSettingsMenu(item[0], item[1])
+        handleLiveMenu(item[0], item[1])
+    else:
+        handleLiveMenu(item[0], item[1])
+    
+def handleLiveMenu(menu, item):
+    # Converts our ISO or Exposure and passes them to the camera.
+    iso = None
+    exp = None
+    if menu == "ISO":
+        # We have ISO, so set it.
+        iso = 0
+        if item != "AUTO":
+            iso = item
+        if iso != cam.ISO:
+            cam.ISO = iso
+            print("Updating camera ISO to {0}".format(iso))
+            camera.reconfigure()
+            return True
+        else:
+            return False
+    if menu == "Exposure":
+        s = 0
+        if item != 'AUTO':
+            if item[-1:] == '"':
+                # We have an exposure denoted in seconds, so don't worry about division.
+                s = float(item[:-1])
+            elif item[1] == '/':
+                # We have an exposure denoted by a divisor.
+                s = 1.0 / float(item[2:])
+        exp = s
+        if exp != cam.exposure:
+            cam.exposure = exp
+            print("Updating camera exposure to {0}".format(exp))
+            camera.reconfigure()
+            return True
+        else:
+            return False
+    if menu == "Mode":
+        m = 0
+        if item == "Still":
+            m = 0
+        elif item == "Video":
+            m = 1
+        if m != cam.mode:
+            cam.mode = m
+            print("Setting camera mode to {0}".format(item))
+            camera.reconfigure()
+            return True
+        else:
+            return False
         
 def handleEncoder(enc):
     global _settingsMode, _encPriority
     _encPriority = True
     # Handle's the encoder's direction.
-    print("Dir: {0}, Pressed: {1}".format(enc.direction, enc.isPressed))
     sel = None
     if enc.direction == "Left":
-        menu.liveMenu.prevOption()
-        sel = menu.liveMenu.getCurrentSelect()
-        print("Selected {1} from {0}".format(sel[0], sel[1]))
+        menuPrevOption()
+        handleAdjust(getcurrentSelectMenu)
     elif enc.direction == "Right":
         menu.liveMenu.nextOption()
         sel = menu.liveMenu.getCurrentSelect()
@@ -67,7 +161,7 @@ def handleEncoder(enc):
             elif not _settingsMode:
                 print("Exiting Settings Mode")
         else:
-            menu.liveMenu.nextMenu()
+            menuNextMenu
             sel = menu.liveMenu.getCurrentSelect()
             print("Switched to menu {0}".format(sel[0]))
     enc.resetState()
