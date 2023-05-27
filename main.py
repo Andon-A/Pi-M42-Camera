@@ -20,8 +20,6 @@ GPIO.setmode(GPIO.BCM)
 _shutterPin = 14
 _encIntPin  = 17
 
-# Timer for the encoder.
-_encTimer
 
 # Are we in settings?
 _settingsMode = False
@@ -51,6 +49,7 @@ def printEncoderBetter(enc):
 def handleEncoder(enc):
     global _encTimer, _settingsMode
     # Handle's the encoder's direction.
+    print("Dir: {0}, Pressed: {1}".format(enc.direction, enc.isPressed))
     sel = None
     if enc.direction == "Left":
         menu.liveMenu.prevOption()
@@ -61,17 +60,19 @@ def handleEncoder(enc):
         sel = menu.liveMenu.getCurrentSelect()
         print("Selected {1} from {0}".format(sel[0], sel[1]))
     # Handle the button press.
-    if enc.pressedChange and enc.isPressed:
-        _encTimer = time.monotonic() # When we started listening.
-    elif enc.pressedChange and not enc.isPressed:
-        # Encoder is released. How long has it been?
-        t = time.monotonic() - _encTimer
+    if enc.pressedChange and enc.pressed:
+        encTimer = time.monotonic() # When we started listening.
+        while enc.pressed: # Read the pressed state directly and wait until it changes.
+            pass
+        # how long have we been pressed?
+        t = time.monotonic() - encTimer
         if t >= 5.0: # If we've been pressed for 5 or more seconds, enter or leave settings menu.
             _settingsMode = not _settingsMode
         else:
             menu.liveMenu.nextMenu()
             sel = menu.liveMenu.getcurrentSelect()
             print("Switched to menu {0}".format(sel[0]))
+    enc.resetState()
     # Now we need to handle our items.
     
 
@@ -90,7 +91,7 @@ battery     = system.Battery(adc.Pin2)
 # Shutter is hooked up to GPIO 14.
 # Encoder interrupt is hooked up to 17.
 shutter     = controls.button(_shutterPin, bounce=100, callback=handleShutterButton)
-encoder     = controls.encoder(_encIntPint, timeout=10, callback=handleEncoder)
+encoder     = controls.encoder(_encIntPin, timeout=10, callback=handleEncoder)
 #shutter     = controls.button(_shutterPin, bounce=100, callback=printShutterButton)
 #encoder     = controls.encoder(_encIntPin, printEncoderBetter, timeout=10)
 

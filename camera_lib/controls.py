@@ -120,7 +120,7 @@ class encoder:
             self._timeout = ms
     
     def resetState(self):
-        self.count = 0
+        self.count = 5
         self.direction = "None"
         self.pressedChange = False
         # Attempt to clear our interrupts. This usually works for rotation
