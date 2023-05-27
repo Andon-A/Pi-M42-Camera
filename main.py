@@ -53,9 +53,9 @@ def menuPrevOption():
     if _settingsMode:
         # TODO: Settings menu
         # menu.settingsMenu.nextOption()
-        menu.liveMenu.nextOption()
+        menu.liveMenu.prevOption()
     else:
-        menu.liveMenu.nextOption()
+        menu.liveMenu.prevOption()
 
 def menuNextMenu():
     # Next menu item
@@ -73,9 +73,9 @@ def getCurrentSelectMenu():
     if _settingsMode:
         # TODO: Settings menu
         # menu.settingsMenu.getCurrentSelect()
-        menu.liveMenu.getCurrentSelect()
+        return menu.liveMenu.getCurrentSelect()
     else:
-        menu.liveMenu.getCurrentSelect()
+        return menu.liveMenu.getCurrentSelect()
         
 def handleAdjust(item):
     # Sets things depending on what the menu was.
@@ -99,7 +99,7 @@ def handleLiveMenu(menu, item):
         if iso != cam.ISO:
             cam.ISO = iso
             print("Updating camera ISO to {0}".format(iso))
-            camera.reconfigure()
+            cam.reconfigure()
             return True
         else:
             return False
@@ -116,7 +116,7 @@ def handleLiveMenu(menu, item):
         if exp != cam.exposure:
             cam.exposure = exp
             print("Updating camera exposure to {0}".format(exp))
-            camera.reconfigure()
+            cam.reconfigure()
             return True
         else:
             return False
@@ -129,7 +129,7 @@ def handleLiveMenu(menu, item):
         if m != cam.mode:
             cam.mode = m
             print("Setting camera mode to {0}".format(item))
-            camera.reconfigure()
+            cam.reconfigure()
             return True
         else:
             return False
@@ -138,7 +138,6 @@ def handleEncoder(enc):
     global _settingsMode, _encPriority
     _encPriority = True
     # Handle's the encoder's direction.
-    sel = None
     if enc.direction == "Left":
         menuPrevOption()
         handleAdjust(getCurrentSelectMenu())
@@ -162,7 +161,7 @@ def handleEncoder(enc):
                 print("Exiting Settings Mode")
         else:
             menuNextMenu()
-            print("Switched to menu {0}".format(sel[0]))
+            print("Switched to menu {0}".format(getCurrentSelectMenu()[0]))
     enc.resetState()
     # Now we need to handle our items.
     

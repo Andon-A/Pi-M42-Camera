@@ -25,6 +25,7 @@ class Camera:
         self._mode = 0 # 0 for still, 1 for video.
         self._iso = 0 # 0 for still, then typical 100/200/400/800/1600 settings
         self._currentCFG = None
+        self._needsConfig = False
         self.mode = cam_config.cfg["Settings"].getint("Mode")
         self.exposure = cam_config.cfg["Settings"].getfloat("Exposure")
         self.ISO = cam_config.cfg["Settings"].getint("ISO")
@@ -86,6 +87,7 @@ class Camera:
         cam_config.cfg["Settings"]["Exposure"] = str(exp)
         cam_config.save_config()
         self._exposure = exp
+        self._needsConfig = True # Make sure we reconfigure the camera if this changes.
         return exp
     
     @ISO.setter
@@ -99,6 +101,7 @@ class Camera:
         cam_config.cfg["Settings"]["ISO"] = str(iso)
         cam_config.save_config()
         self._iso = iso
+        self._needsConfig = True # Make sure we reconfigure the camera if this changes.
         return iso
     
     @mode.setter
@@ -114,6 +117,7 @@ class Camera:
         cam_config.cfg["Settings"]["Mode"] = str(newMode)
         cam_config.save_config()
         self._mode = newMode
+        self._needsConfig = True # Make sure we reconfigure the camera if this changes.
         return newMode
     
     def startCam(self):
@@ -135,13 +139,14 @@ class Camera:
         # Stops the camera, reconfigures, then restarts the preview.
         # Only applies if the configuration is actually different.
         new_cfg = self.getConfig()
-        if (self._currentCFG != new_cfg) and not self._recording:
+        if ((self._currentCFG != new_cfg) or self._needsConfig) and not self._recording:
             self.camera.stop()
             self.camera.configure(new_cfg)
             self._currentCFG = new_cfg
             self.camera.stop_preview()
             self.camera.start_preview(Preview.DRM, width=800, height=480, transform=Transform(hflip=1, vflip=1))
             self.camera.start()
+            self._needsConfig = False
     
     def getExposure(self):
         # self.exposure is measured in seconds
