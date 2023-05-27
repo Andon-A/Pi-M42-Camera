@@ -210,14 +210,17 @@ while True:
     #print("Interface Board temp: " + str(round(boardTemp.temp_F, 2)))
     #print("CPU Temp: " + str(round(cpuTemp.temp_F, 2)))
     #print("Battery Voltage: " + str(round(battery.voltage, 2)))
-    print(GPIO.input(encoder.int_pin))
+    #print(GPIO.input(encoder.int_pin))
     #checkShutterButton()
     #encoder.reset_State()
-    time.sleep(0.2)
+    time.sleep(0.1)
+    # Twist doesn't seem to be firing interrupts right now.
+    if encoder.twist.moved or encoder.twist.pressed:
+        handleEncoder(encoder)
     if (time.monotonic() > _lastEnc + 0.5) and _needsConfig:
         cam.reconfigure()
         _needsConfig = False
-    if time.monotonic() > _lastenc + 2:
+    if time.monotonic() > _lastEnc + 2:
         encoder.resetState() # Clear lurking interrupts after a few seconds.
     _encPriority = False
     updateRegOverlay()
