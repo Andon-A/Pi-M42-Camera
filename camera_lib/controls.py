@@ -140,7 +140,7 @@ class encoder:
             elif not self.pressed and self.isPressed:
                 self.isPressed = False
                 self.pressedChange = True
-            r = self.count - 5 # We know where this starts. Negative = left, positive = right
+            r = 5 - self.count # We know where this starts. Negative = left, positive = right
             if r > 0:
                 self.direction = "Right"
             elif r < 0:

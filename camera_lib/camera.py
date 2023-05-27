@@ -21,9 +21,9 @@ class Camera:
         # What's our mode?
         # 0 is Auto
         # 1 is Video
-        self._exposure = 0
-        self._mode = 0
-        self._iso = 0
+        self._exposure = 0 # In seconds. 0 for auto.
+        self._mode = 0 # 0 for still, 1 for video.
+        self._iso = 0 # 0 for still, then typical 100/200/400/800/1600 settings
         self._currentCFG = None
         self.mode = cam_config.cfg["Settings"].getint("Mode")
         self.exposure = cam_config.cfg["Settings"].getfloat("Exposure")
