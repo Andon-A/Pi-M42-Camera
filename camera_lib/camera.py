@@ -43,25 +43,25 @@ class Camera:
         
         # Our configurations
         self.auto_still = self.camera.create_still_configuration(main={"size": (4056, 3040)},
-                                                            lores={"size": self.screen}, display="lores",
+                                                            lores={"size": self._screen}, display="lores",
                                                             raw={}, buffer_count=2,
                                                             )
 
         self.exp_still = self.camera.create_still_configuration( main={"size": (4056, 3040)},
-                                                            lores={"size": self.screen}, display="lores",
+                                                            lores={"size": self._screen}, display="lores",
                                                             raw={}, buffer_count=2,
                                                             controls={"ExposureTime": self.getExposure()}
                                                             )
         
         self.iso_still = self.camera.create_still_configuration( main={"size": (4056, 3040)},
-                                                            lores={"size": self.screen}, display="lores",
+                                                            lores={"size": self._screen}, display="lores",
                                                             raw={}, buffer_count=2,
                                                             controls={"AnalogueGain": self.getAnalogueGain()}
                                                             )
         
         self.exp_iso_still = self.camera.create_still_configuration( 
                                                             main={"size": (4056, 3040)},
-                                                            lores={"size": self.screen}, display="lores",
+                                                            lores={"size": self._screen}, display="lores",
                                                             raw={}, buffer_count=2,
                                                             controls={"ExposureTime": self.getExposure(),
                                                             "AnalogueGain": self.getAnalogueGain()}
@@ -69,7 +69,7 @@ class Camera:
 
         self.video = self.camera.create_video_configuration(
                                                             main={"size": (2048, 1536)},
-                                                            lores={"size": self.screen}, display="lores",
+                                                            lores={"size": self._screen}, display="lores",
                                                             buffer_count=2
                                                             )
     
@@ -324,17 +324,18 @@ class Overlay:
         self._linePadding = 0.2     # We want 20% of our text height to be used as padding.
                                     # 12 lineheight = 10 text, 2 padding
                                     # Padding is added below the text.
-        self._originX = origin[0]   # X pos for the start of all lines
-        self._originY = origin[1]   # Y pos for the start of the first line.
+        self._originX = textOrigin[0]   # X pos for the start of all lines
+        self._originY = textOrigin[1]   # Y pos for the start of the first line.
         self._linesWritten = 0      # Number of lines we have currently written
-        self._scale = 0             # OpenCV uses text scale instead of pixels, so we convert.
+        self._scale = 0             # OpenCV uses text scale instead of pixels, so we convert
+        self._lineHeight = 0
+        self._font = cv2.FONT_HERSHEY_PLAIN
         self._camera = camera
         self.lineHeight = lineheight
         self._thickness = thickness
         self._screen = screenSize
         self._bg = bg               # (0, 0, 0) RGB style
         self._lines = []            # We'll shove our lines of text into here.
-        self._font = cv2.FONT_HERSHEY_PLAIN
 
     # Get and set our origin
     @property
@@ -349,7 +350,7 @@ class Overlay:
 
     @property
     def lineHeight(self):
-        return self._scale
+        return self._lineHeight
         
     
     @lineHeight.setter
@@ -361,12 +362,13 @@ class Overlay:
         # Get our default text height based off of a scale of 1.0 and thickness of 2
         default = cv2.getTextSize("Test", self._font, 1.0, 2)[0][1]
         self._scale = textHeight / default # We could round this, but nobody will see it.
-        return self._scale
+        self._lineHeight = lineheight
+        return self._lineHeight
     
     def makeOverlay(self):
         # Create a blank overlay.
         base = numpy.zeros((800, 480, 4), dtype=numpy.uint8)
-        if self._background is not None:
+        if self._bg is not None:
             # We want a background.
             bgcolor = (self._bg[2], self._bg[1], self._bg[0]) # OpenCV takes BGR
             cv2.rectangle(base, (0,0), self._screen, bgcolor, thickness=-1)
@@ -374,13 +376,13 @@ class Overlay:
         base = cv2.flip(base, -1) # Rotate 180 degrees
         return base        
         
-    def addLine(self, text, color=(255,255,255,255), bold=False linenum = -1):
+    def addLine(self, text, color=(255,255,255,255), bold=False, linenum = -1):
         # Add another line by default.
         if linenum < 0:
             linenum = len(self._lines) # Add another line.
         # Make sure we have enough lines in the list.
         while linenum >= len(self._lines):
-            self._lines.append((255,255,255,255),"")
+            self._lines.append(((255,255,255,255),""))
         # Now write the line.
         thick = self._thickness
         if bold:
@@ -409,6 +411,6 @@ class Overlay:
                 color = line[0]
                 thickness = line[1]
                 xpos = self._originX
-                ypos = self._originY + (line * self.lineHeight)
+                ypos = self._originY + (idx * self.lineHeight)
                 cv2.putText(overlay, text, (xpos, ypos), self._font, self._scale, color, thickness)
         return True
