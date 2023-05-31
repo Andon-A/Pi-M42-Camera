@@ -98,7 +98,7 @@ class Camera:
     def exposure(self, exp):
         self._exp_str = exp # Set the string.
         # Now parse it into into a number.
-        if exp == 'Auto':
+        if exp.lower() == 'auto':
             # Our functions want a number, so we treat "0" as auto.
             self._exp_raw = 0
         else:
@@ -124,8 +124,9 @@ class Camera:
     def ISO(self, iso):
         self._iso_str = str(iso)
         # We're passed a string which is a number or 'Auto'
-        if iso == 'Auto':
-            self._iso_raw = 0
+        if type(iso) == str:
+            if iso.lower() == 'auto':
+                self._iso_raw = 0
         else:
             iso = int(iso)
             if iso < 0:
