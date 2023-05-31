@@ -4,21 +4,20 @@
 The following won't be included in this repository:
 - [ ] Clean up startup on Raspberry Pi
 - [X] Set up file system correctly
- - [X] Set up /software folder on Pi partition
- - [X] Set up /photos to be photos partition
- - [X] Set up /Images folder in photos partition
- - [X] Set up /Videos folder in photos partition
+ - [X] Set up /software folder on Pi
+ - [X] Set up /photos
+ - [X] Set up /Images folder in photos
+ - [X] Set up /Videos folder in photos
 - [ ] Set up Samba and WSDD on Raspberry Pi
 - [ ] Set up WSDD as a service
 - [ ] Set up main program as a service
 - [ ] Set up RTC
-- [X] Set up alternate CS pin (Move CS0 to GPIO26/Pin 37)
 
 ## Hardware
 Hardware is not included in this repository (currently)
 - [X] Design 3d printed encoder mount
 - [X] Design 3d printed top plate to hold USB port
-- [ ] Adjust sensor position for better focus (Sensor needs to go forwards)
+- [X] Adjust sensor position for better focus (Sensor needs to go forwards)
 
 ## Software
 ### Controls
@@ -39,7 +38,6 @@ These are the program parts that do the things, not necessarily tied in to every
 ### Hardware Interface
 As with camera, the parts that do the things, not the actual doing of things.
 - [X] Set up battery voltage monitoring for charge status
-- [X] Set up internal thermistor for heat status
 - [X] Set up CPU temperature monitoring
 ### Basic Software
 - [ ] Main loop that saves pictures to correct folder

@@ -10,20 +10,21 @@ I was able to mount the focal reducer at a point where it provides *about* a 0.7
 ### Hardware
 The camera uses some custom hardware:
 - A power board that converts battery input into 5v power for the pi
-- A [PCF8523](https://www.adafruit.com/product/3295) real-time clock
-- An interface board that connects each of the above to the Pi
 
 It also uses some off-the-shelf hardware:
 - A Raspberry Pi 4 - I'm using a 4gb version, but I expect it would work just as well on a 2gb version.
 - A Raspberry Pi HQ Camera. I took off the standard mount, as I was providing my own.
 - [The smallest DSI screen I could get my hands on.](https://www.amazon.com/gp/product/B08634Y16L)
 - A [tiny USB3 drive](https://www.amazon.com/gp/product/B07XHYVN62) is used instead of an SD card for accessibility purposes
+- A [PCF8523](https://www.adafruit.com/product/3295) real-time clock
+- A [Sparkfun Qwiic HAT](https://www.sparkfun.com/products/14459)
 - A [Sparkfun Qwiic Twist rotary encoder](https://www.sparkfun.com/products/15083)
+- A [PCF9501 ADC](https://www.adafruit.com/product/4648) to monitor battery voltage
 
 ### Software
 Due to the above hardware, the following are required:
 - [Adafruit's Blinka](https://learn.adafruit.com/circuitpython-on-raspberrypi-linux)
-- Adafruit's [MCP3xxx library](https://github.com/adafruit/Adafruit_CircuitPython_MCP3xxx)
+- Adafruit's [PCF8591 Library](https://github.com/adafruit/Adafruit_CircuitPython_PCF8591)
 - Sparkfun's [Qwiic Twist library](https://github.com/sparkfun/Qwiic_Twist_Py)
 - [Setup for the above RTC](https://learn.adafruit.com/adding-a-real-time-clock-to-raspberry-pi)
 

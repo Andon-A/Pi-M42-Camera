@@ -1,6 +1,13 @@
+# Camera imports
 from picamera2 import Picamera2, Preview
 from picamera2.encoders import H264Encoder
 from libcamera import Transform
+
+# Camera related imports
+import cv2
+import numpy
+
+# General imports
 import threading
 import cam_config
 import os
@@ -9,11 +16,11 @@ import os
 
 class Camera:
     # A wrapper for the regular camera class
-    def __init__(self):
+    def __init__(self, screenSize=(800, 480)):
         global cam_config
         # Start the camera
         self.camera = Picamera2()
-        
+        self._screen = screenSize
         # Are we recording?
         self._recording = False 
         # Video encoder
@@ -27,30 +34,34 @@ class Camera:
         self._currentCFG = None
         self._needsConfig = False
         self.mode = cam_config.cfg["Settings"].getint("Mode")
-        self.exposure = cam_config.cfg["Settings"].getfloat("Exposure")
-        self.ISO = cam_config.cfg["Settings"].getint("ISO")
+        self._exp_raw = 0
+        self._iso_raw = 0
+        self._exp_str = "Auto"
+        self._iso_str = "Auto"
+        self.Exposure = cam_config.cfg["Settings"]["Exposure"]
+        self.ISO = cam_config.cfg["Settings"]["ISO"]
         
         # Our configurations
         self.auto_still = self.camera.create_still_configuration(main={"size": (4056, 3040)},
-                                                            lores={"size": (800, 480)}, display="lores",
+                                                            lores={"size": self.screen}, display="lores",
                                                             raw={}, buffer_count=2,
                                                             )
 
         self.exp_still = self.camera.create_still_configuration( main={"size": (4056, 3040)},
-                                                            lores={"size": (800, 480)}, display="lores",
+                                                            lores={"size": self.screen}, display="lores",
                                                             raw={}, buffer_count=2,
                                                             controls={"ExposureTime": self.getExposure()}
                                                             )
         
         self.iso_still = self.camera.create_still_configuration( main={"size": (4056, 3040)},
-                                                            lores={"size": (800, 480)}, display="lores",
+                                                            lores={"size": self.screen}, display="lores",
                                                             raw={}, buffer_count=2,
                                                             controls={"AnalogueGain": self.getAnalogueGain()}
                                                             )
         
         self.exp_iso_still = self.camera.create_still_configuration( 
                                                             main={"size": (4056, 3040)},
-                                                            lores={"size": (800, 480)}, display="lores",
+                                                            lores={"size": self.screen}, display="lores",
                                                             raw={}, buffer_count=2,
                                                             controls={"ExposureTime": self.getExposure(),
                                                             "AnalogueGain": self.getAnalogueGain()}
@@ -58,50 +69,85 @@ class Camera:
 
         self.video = self.camera.create_video_configuration(
                                                             main={"size": (2048, 1536)},
-                                                            lores={"size": (800, 480)}, display="lores",
+                                                            lores={"size": self.screen}, display="lores",
                                                             buffer_count=2
                                                             )
     
     @property
     def exposure(self):
-        return self._exposure
+        return (self._exp_str, self._exp_raw)
     
     @property
     def mode(self):
-        return self._mode
+        if self._mode == 0:
+            if self.exposure[0] != "Auto" and self.ISO[0] != "Auto":
+                return "Manual Still"
+            elif self.exposure[0] == "Auto" and self.ISO[0] != "Auto":
+                return "ISO-Select Still"
+            elif self.exposure[0] != "Auto" and self.ISO[0] == "Auto":
+                return "Exposure-Select Still"
+            else:
+                return "Auto Still"
+        elif self._mode == 1:
+            return "Video"
     
     @property
     def ISO(self):
-        return self._iso
+        return (self._iso_str, self._iso_raw)
     
     @exposure.setter
     def exposure(self, exp):
-        # Max of 239. Min of 0 (For auto).
-        if exp > 239:
-            exp = 239.00
-        if exp < 0:
-            exp = 0
-        cam_config.cfg["Settings"]["Exposure"] = str(exp)
+        self._exp_str = exp # Set the string.
+        # Now parse it into into a number.
+        if exp == 'Auto':
+            # Our functions want a number, so we treat "0" as auto.
+            self._exp_raw = 0
+        else:
+            if item[-1:] == '"':
+                # We have an exposure denoted in seconds. This is an easy convert.
+                self._exp_raw = float(exp[:-1])
+            else:
+                # We have an exposure denoted by division, IE, 1/XXXX
+                self._exp_raw = 1.0 / float(item[2:])
+        # Make sure we have good data
+        if self._exp_raw > 239:
+            self._exp_raw = 239
+            self._exp_str = '239"'
+        elif self._exp_raw < 0:
+            self._exp_raw = 0
+            self._exp_str = 'Auto'
+        self._needsConfig = True # Make sure we reconfigure the camera.
+        cam_config.cfg["Settings"]["Exposure"] = self._exp_str
         cam_config.save_config()
-        self._exposure = exp
-        self._needsConfig = True # Make sure we reconfigure the camera if this changes.
-        return exp
+        return self.exposure
     
     @ISO.setter
     def ISO(self, iso):
-        # Below 100 is not allowed, unless it's 0 for auto
-        if iso < 100 and iso != 0:
-            iso = 100
-        # Max of 1600
-        if iso > 1600:
-            iso = 1600
-        cam_config.cfg["Settings"]["ISO"] = str(iso)
+        self._iso_str = str(iso)
+        # We're passed a string which is a number or 'Auto'
+        if iso == 'Auto':
+            self._iso_raw = 0
+        else:
+            iso = int(iso)
+            if iso < 0:
+                # Treat negative as auto
+                self._iso_str = 'Auto'
+                self._iso_raw = 0
+            elif iso < 100:
+                self._iso_raw = 100
+                self._iso_str = "100"
+            elif iso > 1600:
+                self._iso_raw = 1600
+                self._iso_str = "1600"
+            else:
+                self._iso_raw = iso
+        self._needsConfig = True
+        cam_config.cfg["Settings"]["ISO"] = self._iso_str
         cam_config.save_config()
-        self._iso = iso
-        self._needsConfig = True # Make sure we reconfigure the camera if this changes.
-        return iso
+        return self.ISO
     
     @mode.setter
+    # TODO: Update to take a string.
     def mode(self, newMode):
         # 0 is still
         # 1 is video
@@ -122,7 +168,8 @@ class Camera:
         # And also start the camera.
         self.camera.configure(self.getConfig())
         self._currentCFG = self.getConfig()
-        self.camera.start_preview(Preview.DRM, width=800, height=480, transform=Transform(hflip=1, vflip=1))
+        self.camera.start_preview(Preview.DRM, width=self._screen[0], height=self._screen[1],
+                                    transform=Transform(hflip=1, vflip=1))
         self.camera.start()
         return True
     
@@ -141,7 +188,8 @@ class Camera:
             self.camera.configure(new_cfg)
             self._currentCFG = new_cfg
             self.camera.stop_preview()
-            self.camera.start_preview(Preview.DRM, width=800, height=480, transform=Transform(hflip=1, vflip=1))
+            self.camera.start_preview(Preview.DRM, width=self._screen[0], height=self._screen[1],
+                                        transform=Transform(hflip=1, vflip=1))
             self.camera.start()
             self._needsConfig = False
     
@@ -149,17 +197,18 @@ class Camera:
         # self.exposure is measured in seconds
         # But we need microseconds. A second has one million microseconds
         # No error or mode checking here, it's done elsewhere.
-        exposure = int(round(self.exposure * 1000000))
+        exposure = int(round(self.exposure[1] * 1000000))
         return exposure
     
     def getAnalogueGain(self):
         # self.ISO is measured in, well. "Effective" ISO.
         # We want this to be a number for AnalogueGain
         # We treat ISO as being 100x the gain.
-        gain = self.ISO / 100.00
+        gain = self.ISO[1] / 100.00
         return gain
         
     def getConfig(self, mode=None):
+        # TODO: Update for string mode for camera
         # Returns the correct configuration for the mode.
         if mode is None:
             mode = self.mode
@@ -250,4 +299,96 @@ class Camera:
         cam_config.cfg["Info"]["NextImg"] = str(next_image)
         cam_config.save_config()
         print("Saved config")
+        return True
+    
+    def write_overlay(self, overlay):
+        self.camera.set_overlay(overlay)
+        return True
+        
+class Overlay:
+    # A class to run our overlay.
+    def __init__(self, lineheight=12, textOrigin=(0,0), thickness=2,
+                        bg=None, screenSize=(800,480)):
+        self._linePadding = 0.2     # We want 20% of our text height to be used as padding.
+                                    # 12 lineheight = 10 text, 2 padding
+                                    # Padding is added below the text.
+        self._originX = origin[0]   # X pos for the start of all lines
+        self._originY = origin[1]   # Y pos for the start of the first line.
+        self._linesWritten = 0      # Number of lines we have currently written
+        self._scale = 0             # OpenCV uses text scale instead of pixels, so we convert.
+        self.lineHeight = lineheight
+        self._thickness = thickness
+        self._screen = screenSize
+        self._bg = bg               # (0, 0, 0) RGB style
+        self._lines = []            # We'll shove our lines of text into here.
+        self._font = cv2.FONT_HERSHEY_PLAIN
+
+    # Get and set our origin
+    @property
+    def origin(self):
+        return (self._originX, self.originY)
+    
+    @origin.setter
+    def origin(self, pos):
+        self._originX = pos[0]
+        self._originY = pos[1]
+        return self.origin
+
+    @property
+    def lineHeight(self):
+        return self._scale
+        
+    
+    @lineHeight.setter
+    def lineHeight(self, lineheight):
+        # Sets our text scale based on line height.
+        # Calculate the text size, in pixels, based on line height.
+        # Round to nearest pixel.
+        textHeight = float(round(lineheight / (1 + self._linePadding)))
+        # Get our default text height based off of a scale of 1.0 and thickness of 2
+        default = cv2.getTextSize("Test", self._font, 1.0, 2)[0][1]
+        self._scale = textHeight / default # We could round this, but nobody will see it.
+        return self._scale
+    
+    def makeOverlay(self):
+        # Create a blank overlay.
+        base = numpy.zeros((800, 480, 4), dtype=numpy.uint8)
+        if self._background is not None:
+            # We want a background.
+            bgcolor = (self._bg[2], self._bg[1], self._bg[0]) # OpenCV takes BGR
+            cv2.rectangle(base, (0,0), self._screen, bgcolor, thickness=-1)
+        self.writeLines(base)
+        base = cv2.flip(base, -1) # Rotate 180 degrees
+        return base        
+        
+    def addLine(self, text, color=(255,255,255,255), bold=False linenum = -1):
+        # Add another line by default.
+        if linenum < 0:
+            linenum = len(self._lines) # Add another line.
+        # Make sure we have enough lines in the list.
+        while linenum >= len(self._lines):
+            self._lines.append((255,255,255,255),"")
+        # Now write the line.
+        thick = self._thickness
+        if bold:
+            thick = self._thickness * 2
+        self._lines[linenum] = (color, thick, text)
+        return True
+    
+    def clearLines(self):
+        self._lines = []
+        return True
+    
+    def writeLines(self, overlay):
+        # Write each of our lines
+        for idx in range(0, len(self._lines)):
+            line = self._lines[idx]
+            text = line[2]
+            if text != "":
+                # Only proceed with non-empty lines.
+                color = line[0]
+                thickness = line[1]
+                xpos = self._originX
+                ypos = self._originY + (line * self.lineHeight)
+                cv2.putText(overlay, text, (xpos, ypos), self._font, self._scale, color, thickness)
         return True

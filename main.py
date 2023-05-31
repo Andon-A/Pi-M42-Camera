@@ -16,13 +16,9 @@ import time
 import RPi.GPIO as GPIO
 GPIO.setmode(GPIO.BCM)
 
-# For our overlay
-import cv2
-import numpy as np
-
 # Pin assignments
-_shutterPin = 14
-_encIntPin  = 17
+_shutterPin = 12
+_encIntPin  = 6
 
 
 # Are we in settings?
@@ -96,29 +92,19 @@ def handleLiveMenu(menu, item):
     exp = None
     if menu == "ISO":
         # We have ISO, so set it.
-        iso = 0
-        if item != "AUTO":
-            iso = item
-        if iso != cam.ISO:
+        iso = item
+        if cam.ISO != iso:
             cam.ISO = iso
-            print("Updating camera ISO to {0}".format(iso))
+            print("Camera ISO set to {0}".format(cam.ISO))
             _needsConfig = True
             return True
         else:
             return False
-    if menu == "Exposure":
-        s = 0
-        if item != 'AUTO':
-            if item[-1:] == '"':
-                # We have an exposure denoted in seconds, so don't worry about division.
-                s = float(item[:-1])
-            elif item[1] == '/':
-                # We have an exposure denoted by a divisor.
-                s = 1.0 / float(item[2:])
-        exp = s
-        if exp != cam.exposure:
+    elif menu == "Exposure":
+        exp = item
+        if cam.exposure != exp:
             cam.exposure = exp
-            print("Updating camera exposure to {0}".format(exp))
+            print("Camera exposure set to {0}".format(cam.exposure))
             _needsConfig = True
             return True
         else:
@@ -131,7 +117,7 @@ def handleLiveMenu(menu, item):
             m = 1
         if m != cam.mode:
             cam.mode = m
-            print("Setting camera mode to {0}".format(item))
+            print("Setting camera mode to {0}".format(cam.mode))
             _needsConfig = True
             return True
         else:
@@ -180,31 +166,28 @@ def handleShutterButton(value):
         print("Click")
         # cam.shutter()
 
-def updateRegOverlay():
-    # Creates and assigns the overlay for the base info
-    # Text info
-    color = (255, 255, 255, 255)
-    origin = (10, 30)
-    font = cv2.FONT_HERSHEY_SIMPLEX
-    scale = 1
-    thickness = 2
-    overlay = np.zeros((800, 480, 4), dtype=np.uint8)
-    cv2.putText(overlay, str("ISO: {0}\nExposure: {1}".format(cam.ISO, cam.exposure)), origin,
-                font, scale, color, thickness)
-    np.rot90(overlay, 2)
-    cam.camera.set_overlay(overlay)
+
+def updateRegOverlay(overlay):
+    # Updates our regular overlay.
+    overlay.clearLines() # We're updating dynamic info, so these need to be cleaned and rewritten.
+    overlay.addLine("ISO: {0}".format(cam.ISO[0]))
+    overlay.addLine("Exposure: {0}".format(cam.exposure[0]))
+    cam.write_overlay(overlay.makeOverlay)
     
     
 
-# Shutter is hooked up to GPIO 14.
-# Encoder interrupt is hooked up to 17.
 shutter     = controls.button(_shutterPin, bounce=250, callback=handleShutterButton)
 encoder     = controls.encoder(_encIntPin, timeout=10, callback=handleEncoder)
-#encoder.resetState() # Make sure we clear any lurking interrupts
+encoder.resetState()
 
 # Camera
 cam = camera.Camera()
 cam.startCam()
+
+# Regular (Camera view) overlay
+regOverlay = camera.Overlay(textOrigin=(10, 20))
+
+# We'll need an Overlay for each of our text menus.
 
 while True:
     #print("Interface Board temp: " + str(round(boardTemp.temp_F, 2)))
@@ -223,5 +206,5 @@ while True:
     if time.monotonic() > _lastEnc + 2:
         encoder.resetState() # Clear lurking interrupts after a few seconds.
     _encPriority = False
-    updateRegOverlay()
+    updateRegOverlay(regOverlay)
     #encoder.resetState() # Don't want any lurking interrupts
