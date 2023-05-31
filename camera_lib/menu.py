@@ -1,4 +1,4 @@
-# This is our settings menu.
+# This is our menu maker.
 
 class basicMenu:
     def __init__(self):

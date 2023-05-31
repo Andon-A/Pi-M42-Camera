@@ -16,11 +16,10 @@ import os
 
 class Camera:
     # A wrapper for the regular camera class
-    def __init__(self, screenSize=(800, 480)):
+    def __init__(self):
         global cam_config
         # Start the camera
         self.camera = Picamera2()
-        self._screen = screenSize
         # Are we recording?
         self._recording = False 
         # Video encoder
@@ -43,25 +42,25 @@ class Camera:
         
         # Our configurations
         self.auto_still = self.camera.create_still_configuration(main={"size": (4056, 3040)},
-                                                            lores={"size": self._screen}, display="lores",
+                                                            lores={"size": (800, 480)}, display="lores",
                                                             raw={}, buffer_count=2,
                                                             )
 
         self.exp_still = self.camera.create_still_configuration( main={"size": (4056, 3040)},
-                                                            lores={"size": self._screen}, display="lores",
+                                                            lores={"size": (800, 480)}, display="lores",
                                                             raw={}, buffer_count=2,
                                                             controls={"ExposureTime": self.getExposure()}
                                                             )
         
         self.iso_still = self.camera.create_still_configuration( main={"size": (4056, 3040)},
-                                                            lores={"size": self._screen}, display="lores",
+                                                            lores={"size": (800, 480)}, display="lores",
                                                             raw={}, buffer_count=2,
                                                             controls={"AnalogueGain": self.getAnalogueGain()}
                                                             )
         
         self.exp_iso_still = self.camera.create_still_configuration( 
                                                             main={"size": (4056, 3040)},
-                                                            lores={"size": self._screen}, display="lores",
+                                                            lores={"size": (800, 480)}, display="lores",
                                                             raw={}, buffer_count=2,
                                                             controls={"ExposureTime": self.getExposure(),
                                                             "AnalogueGain": self.getAnalogueGain()}
@@ -69,7 +68,7 @@ class Camera:
 
         self.video = self.camera.create_video_configuration(
                                                             main={"size": (2048, 1536)},
-                                                            lores={"size": self._screen}, display="lores",
+                                                            lores={"size": (800, 480)}, display="lores",
                                                             buffer_count=2
                                                             )
     
@@ -181,7 +180,7 @@ class Camera:
         # And also start the camera.
         self.camera.configure(self.getConfig())
         self._currentCFG = self.getConfig()
-        self.camera.start_preview(Preview.DRM, width=self._screen[0], height=self._screen[1],
+        self.camera.start_preview(Preview.DRM, width=800, height=480,
                                     transform=Transform(hflip=1, vflip=1))
         self.camera.start()
         return True
@@ -201,7 +200,7 @@ class Camera:
             self.camera.configure(new_cfg)
             self._currentCFG = new_cfg
             self.camera.stop_preview()
-            self.camera.start_preview(Preview.DRM, width=self._screen[0], height=self._screen[1],
+            self.camera.start_preview(Preview.DRM, width=800, height=480,
                                         transform=Transform(hflip=1, vflip=1))
             self.camera.start()
             self._needsConfig = False
@@ -325,7 +324,7 @@ class Camera:
 class Overlay:
     # A class to run our overlay.
     def __init__(self, camera, lineheight=18, textOrigin=(0,0), thickness=2,
-                        bg=None, screenSize=(800,480)):
+                        bg=None):
         self._linePadding = 0.4     # We want 30% of our text height to be used as padding.
                                     # 12 lineheight = 10 text, 2 padding
                                     # Padding is added below the text.
@@ -338,7 +337,6 @@ class Overlay:
         self._camera = camera
         self.lineHeight = lineheight
         self._thickness = thickness
-        self._screen = screenSize
         self._bg = bg               # (0, 0, 0) RGB style
         self._lines = []            # We'll shove our lines of text into here.
 
@@ -384,7 +382,7 @@ class Overlay:
         if self._bg is not None:
             # We want a background.
             bgcolor = (self._bg[2], self._bg[1], self._bg[0]) # OpenCV takes BGR
-            cv2.rectangle(base, (0,0), self._screen, bgcolor, thickness=-1)
+            cv2.rectangle(base, (0,0), (800, 480), bgcolor, thickness=-1)
         self.writeLines(base)
         base = cv2.flip(base, -1) # Rotate 180 degrees
         return base        
