@@ -147,10 +147,23 @@ class Camera:
         return self.ISO
     
     @mode.setter
-    # TODO: Update to take a string.
     def mode(self, newMode):
-        # 0 is still
-        # 1 is video
+        # Sets the mode of the camera.
+        if type(newMode) is str:
+            if newMode.lower() == "stil":
+                newMode = 0 # 0 is still. Still sub-modes are determined by exposure and ISO
+            elif newMode.lower() == "video":
+                newMode = 1 # 1 is video
+            else:
+                # Just in case.
+                newMode = 0
+        if type(newMode) != int:
+            try:
+                # If we have a float or other int-able thing.
+                newMode = int(newMode)
+            except:
+                # Guess not. Default to still.
+                newMode = 0
         if newMode < 0:
             newMode = 0
         elif newMode > 1:
@@ -208,7 +221,6 @@ class Camera:
         return gain
         
     def getConfig(self, mode=None):
-        # TODO: Update for string mode for camera
         # Returns the correct configuration for the mode.
         if mode is None:
             mode = self.mode
@@ -307,7 +319,7 @@ class Camera:
         
 class Overlay:
     # A class to run our overlay.
-    def __init__(self, lineheight=12, textOrigin=(0,0), thickness=2,
+    def __init__(self, camera, lineheight=12, textOrigin=(0,0), thickness=2,
                         bg=None, screenSize=(800,480)):
         self._linePadding = 0.2     # We want 20% of our text height to be used as padding.
                                     # 12 lineheight = 10 text, 2 padding
@@ -316,6 +328,7 @@ class Overlay:
         self._originY = origin[1]   # Y pos for the start of the first line.
         self._linesWritten = 0      # Number of lines we have currently written
         self._scale = 0             # OpenCV uses text scale instead of pixels, so we convert.
+        self._camera = camera
         self.lineHeight = lineheight
         self._thickness = thickness
         self._screen = screenSize
@@ -378,6 +391,13 @@ class Overlay:
     def clearLines(self):
         self._lines = []
         return True
+    
+    def showOverlay(self):
+        # Rebuilds the overlay, then shows it on the camera.
+        overlay = self.makeOverlay()
+        self._camera.write_overlay(overlay)
+        return True
+            
     
     def writeLines(self, overlay):
         # Write each of our lines

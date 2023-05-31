@@ -172,7 +172,7 @@ def updateRegOverlay(overlay):
     overlay.clearLines() # We're updating dynamic info, so these need to be cleaned and rewritten.
     overlay.addLine("ISO: {0}".format(cam.ISO[0]))
     overlay.addLine("Exposure: {0}".format(cam.exposure[0]))
-    cam.write_overlay(overlay.makeOverlay)
+    overlay.showOverlay()
     
     
 
@@ -185,7 +185,7 @@ cam = camera.Camera()
 cam.startCam()
 
 # Regular (Camera view) overlay
-regOverlay = camera.Overlay(textOrigin=(10, 20))
+regOverlay = camera.Overlay(camera=cam, textOrigin=(10, 20))
 
 # We'll need an Overlay for each of our text menus.
 
