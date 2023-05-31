@@ -316,12 +316,17 @@ class Camera:
     def write_overlay(self, overlay):
         self.camera.set_overlay(overlay)
         return True
+    
+    def clear_overlay(self):
+        # Writes an empty array as the overlay
+        self.camera.set_overlay(numpy.zeros((800, 480, 4), dtype=numpy.uint8))
+        return True
         
 class Overlay:
     # A class to run our overlay.
-    def __init__(self, camera, lineheight=12, textOrigin=(0,0), thickness=2,
+    def __init__(self, camera, lineheight=18, textOrigin=(0,0), thickness=2,
                         bg=None, screenSize=(800,480)):
-        self._linePadding = 0.2     # We want 20% of our text height to be used as padding.
+        self._linePadding = 0.4     # We want 30% of our text height to be used as padding.
                                     # 12 lineheight = 10 text, 2 padding
                                     # Padding is added below the text.
         self._originX = textOrigin[0]   # X pos for the start of all lines
@@ -349,10 +354,18 @@ class Overlay:
         return self.origin
 
     @property
+    def padding(self):
+        return self._linePadding
+    
+    @padding.setter
+    def padding(self, pad):
+        self._linePadding = pad
+        return self._linePadding
+    
+    @property
     def lineHeight(self):
         return self._lineHeight
-        
-    
+
     @lineHeight.setter
     def lineHeight(self, lineheight):
         # Sets our text scale based on line height.
