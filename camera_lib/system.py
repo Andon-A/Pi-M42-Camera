@@ -29,7 +29,7 @@ spi = board.SPI()
 class Service:
     def __init__(self, serv):
         self.name = serv
-        self.status = self.IsRunning()
+        self.status = self.isRunning
         
     @property
     def isRunning(self):
@@ -42,24 +42,24 @@ class Service:
     
     def start(self):
         # Makes sure the service is started if it isn't running already.
-        if self.IsRunning:
+        if self.isRunning:
             return True
         else:
             os.system('systemctl start --quiet %s.service' % self.name)
-            return self.IsRunning
+            return self.isRunning
         
     def stop(self):
         # Makes sure the service is stopped if it is running.
-        if not self.IsRunning:
+        if not self.isRunning:
             return False
         else:
             os.system('systemctl stop --quiet %s.service' % self.name)
-            return self.IsRunning
+            return self.isRunning
     
     def restart(self):
         # Restarts the service.
         os.system('systemctl restart --quiet %s.service' % self.name)
-        return self.IsRunning
+        return self.isRunning
 
 class ADC:
     # A simple class for the ADC.

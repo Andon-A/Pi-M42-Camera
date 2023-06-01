@@ -172,6 +172,7 @@ def updateRegOverlay(overlay):
     overlay.clearLines() # We're updating dynamic info, so these need to be cleaned and rewritten.
     overlay.addLine("ISO: {0}".format(cam.ISO[0]))
     overlay.addLine("Exposure: {0}".format(cam.exposure[0]))
+    overlay.addLine("Mode: {0}".format(cam.mode))
     overlay.showOverlay()
     
     

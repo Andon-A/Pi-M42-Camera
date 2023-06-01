@@ -2,16 +2,14 @@
 
 ## General
 The following won't be included in this repository:
-- [ ] Clean up startup on Raspberry Pi
+- [X] Clean up startup on Raspberry Pi
 - [X] Set up file system correctly
  - [X] Set up /software folder on Pi
  - [X] Set up /photos
  - [X] Set up /Images folder in photos
  - [X] Set up /Videos folder in photos
-- [ ] Set up Samba and WSDD on Raspberry Pi
-- [ ] Set up WSDD as a service
 - [ ] Set up main program as a service
-- [ ] Set up RTC
+- [X] Set up RTC
 
 ## Hardware
 Hardware is not included in this repository (currently)
@@ -43,12 +41,11 @@ As with camera, the parts that do the things, not the actual doing of things.
 - [ ] Main loop that saves pictures to correct folder
 - [ ] Watchdog that detects new software and reboots program
 ### Moderate Software
-- [ ] Overlay over the camera that gives information
+- [X] Overlay over the camera that gives information (ISO, Exposure, Mode)
 - [ ] Camera mode switching (Overlay required)
 - [ ] Add logging.
 ### Complex Software
 - [ ] Settings Menu
-- [ ] Wifi On and Off toggles in settings menu
 - [ ] Option to copy all pictures to plugged in USB
 - [ ] Updating settings from plugged in USB
 ### Bonus Software

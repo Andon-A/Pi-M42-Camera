@@ -7,6 +7,8 @@ Without any other fancy things going on, the HQ camera has a crop factor of abou
 
 I was able to mount the focal reducer at a point where it provides *about* a 0.73x multiplier to the field of view. This pulls the crop factor down to 4x, which while still pretty zoomy, is a significant amount less so. That theoretical 50mm lens is now effectively a 200mm lens. It comes with image quality tradeoffs, but it's worth it and if I want better image quality I can remove it. This crop factor can be reduced further by wide angle converters that can be put on the end of the lens, at the further cost of image quality.
 
+Because the camera's case is sheet aluminum, I've turned WiFi, bluetooth, etc off. If I need networking, I use an external USB ethernet port.
+
 ### Hardware
 The camera uses some custom hardware:
 - A power board that converts battery input into 5v power for the pi
@@ -29,7 +31,7 @@ Due to the above hardware, the following are required:
 - [Setup for the above RTC](https://learn.adafruit.com/adding-a-real-time-clock-to-raspberry-pi)
 
 The following are used, but not necessary for the camera functions:
-- Samba and [WSDD](https://github.com/christgau/wsdd) for easy access to the camera's pictures
+- [SFTP to access files](https://pimylifeup.com/raspberry-pi-ftp/)
 
 I've also done the following:
 - Cleaned up startup for a faster boot. I used [this tutorial](https://singleboardbytes.com/637/how-to-fast-boot-raspberry-pi.htm) for some cleaning. I didn't go to extreme, but every bit helps.
