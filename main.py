@@ -30,10 +30,9 @@ _lastEnc = 0
 _needsConfig = False
 
 # Our interfaces
-adc         = system.ADC()
-boardTemp   = system.Thermistor(adc.Pin0, Res=9980, Beta=3435)
+#adc         = system.ADC()
 cpuTemp     = system.CPU()
-battery     = system.Battery(adc.Pin2)
+#battery     = system.Battery(adc.Pin2)
 
 def menuNextOption():
     # Selects the next option from the appropriate menu.

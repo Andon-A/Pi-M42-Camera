@@ -15,8 +15,8 @@ self_path = "/software/filemon.py"
 wait_time = 10 # Seconds since the last event before we do anything
 exclude = ["config.cfg"]
 
-#cam_service = system."Camera" # Our service for the main camera software.
-#own_service = "Camera_Filemon" # Our own watchdog service.
+#cam_service = system.Service("camera") # Our service for the main camera software.
+#own_service = system.Service("camera_filemon") # Our own watchdog service.
 
 _queue = [] # Our queue of items
 _restartSelf = False
