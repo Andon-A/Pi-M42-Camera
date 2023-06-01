@@ -39,6 +39,7 @@ class Camera:
         self._iso_str = "Auto"
         self.Exposure = cam_config.cfg["Settings"]["Exposure"]
         self.ISO = cam_config.cfg["Settings"]["ISO"]
+        self._lastSavedImg = None
         
         # Our configurations
         self.auto_still = self.camera.create_still_configuration(main={"size": (4056, 3040)},
@@ -79,16 +80,16 @@ class Camera:
     @property
     def mode(self):
         if self._mode == 0:
-            if self.exposure[0] != "Auto" and self.ISO[0] != "Auto":
-                return "Manual Still"
-            elif self.exposure[0] == "Auto" and self.ISO[0] != "Auto":
-                return "ISO-Select Still"
-            elif self.exposure[0] != "Auto" and self.ISO[0] == "Auto":
-                return "Exposure-Select Still"
+            if self.exposure[1] != 0 and self.ISO[1] != 0:
+                return "Manual Still", self._mode
+            elif self.exposure[1] == 0 and self.ISO[1] != 0:
+                return "ISO-Select Still", self._mode
+            elif self.exposure[1] != 0 and self.ISO[1] == 0:
+                return "Exposure-Select Still", self._mode
             else:
-                return "Auto Still"
+                return "Auto Still", self._mode
         elif self._mode == 1:
-            return "Video"
+            return "Video", self._mode
     
     @property
     def ISO(self):
@@ -218,17 +219,17 @@ class Camera:
     def getConfig(self, mode=None):
         # Returns the correct configuration for the mode.
         if mode is None:
-            mode = self.mode
+            mode = self.mode[1]
         if mode == 1:
             # Video mode.
             return self.video
         elif mode == 0:
             # Camera mode.
-            if self.exposure > 0 and self.ISO > 0:
+            if self.exposure[1] > 0 and self.ISO[1] > 0:
                 return self.exp_iso_still
-            elif self.exposure > 0 and self.ISO == 0:
+            elif self.exposure[1] > 0 and self.ISO[1] == 0:
                 return self.exp_still
-            elif self.exposure == 0 and self.ISO > 0:
+            elif self.exposure[1] == 0 and self.ISO[1] > 0:
                 return self.iso_still
             else:
                 return self.auto_still
@@ -238,15 +239,16 @@ class Camera:
     def shutter(self):
         # Video stuff. WIP.
         self.reconfigure()
-        if self.mode == 1 and not self._recording:
+        print("Shutter Pressed. Mode: {0}".format(self.mode))
+        if self.mode[1] == 1 and not self._recording:
             self._recording = True
             self.camera.start_recording(encoder, self.get_video_filename())
             print("Starting Video.")
-        elif self.mode == 1 and self._recording:
+        elif self.mode[1] == 1 and self._recording:
             self._recording = False
             self.camera.stop_recording()
             print("Stopping Video.")
-        elif self.mode == 0:
+        elif self.mode[1] == 0:
             if self._recording:
                 # Stop the recording.
                 self.camera.stop_recording()
@@ -266,9 +268,9 @@ class Camera:
     
     def getCount(self):
         ext = ""
-        if self.mode == 0: # Still
+        if self.mode[1] == 0: # Still
             ext = ".icount"
-        elif self.mode == 1:
+        elif self.mode[1] == 1:
             ext = ".vcount"
         else:
             return -1
@@ -279,18 +281,18 @@ class Camera:
         for f in flist:
             if ext == f[-7:]:
                 file = f # Keep looping. We want the largest number one, if it exists.
-        if f != "":
+        if file != "":
             count = int(file[:-7])
         else:
             count = 0 # We currently have zero.
         return count
         
     def increaseCount(self):
-        count = self.getCount # Determine what our count is.
+        count = self.getCount() # Determine what our count is.
         ext = ""
-        if self.mode == 0: # Still
+        if self.mode[1] == 0: # Still
             ext = ".icount"
-        elif self.mode == 1:
+        elif self.mode[1] == 1:
             ext = ".vcount"
         else:
             return False
@@ -298,7 +300,9 @@ class Camera:
         with open(str(count + 1) + ext, 'w') as newfile:
             pass
         # Now, remove the old one.
-        os.remove(str(count) + ext)
+        oldfile = str(count) + ext
+        if os.path.isfile(oldfile):
+            os.remove(str(oldfile))
         return True
     
     def get_video_filename(self):
@@ -335,15 +339,19 @@ class Camera:
         elif next_image < 1000:
             pad = "0"
         filename = base_path + "IMG_" + pad + str(next_image)
-        if cam_config.cfg["Settings"].getboolean("JPEG"):
-            print("Saving {0}.jpg".format(filename))
-            request.save("main", filename + ".jpg")
-        if cam_config.cfg["Settings"].getboolean("DNG"):
-            print("Saving {0}.dng".format(filename))
-            request.save_dng(filename + ".dng")
+        if filename != self._lastSavedImg:
+            self._lastSavedImg = filename
+            if cam_config.cfg["Settings"].getboolean("JPEG"):
+                print("Saving {0}.jpg".format(filename))
+                request.save("main", filename + ".jpg")
+            if cam_config.cfg["Settings"].getboolean("DNG"):
+                print("Saving {0}.dng".format(filename))
+                request.save_dng(filename + ".dng")
+            self.increaseCount()
+        else:
+            print("Already saving that image.")
         request.release()
         print("Released")
-        self.increaseCount()
         return True
     
     def write_overlay(self, overlay):

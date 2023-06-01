@@ -34,7 +34,7 @@ if "Info" not in cfg:
     cfg["Info"]["ImgPath"] = "/photos/default/Images"
     cfg["Info"]["VidPath"] = "/photos/default/Videos"
 
-def save_config():
+def saveConfig():
     # Deletes the old backup, saves our current as the backup, then saves the new version.
     if using_defaults:
         # Don't overwrite the files, just in case.

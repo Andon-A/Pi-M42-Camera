@@ -11,7 +11,7 @@
 import sys
 sys.path.append('./camera_lib')
 
-import system, controls, camera, menu # Our own libraries
+import system, controls, camera, menu, cam_config # Our own libraries
 import time
 import RPi.GPIO as GPIO
 GPIO.setmode(GPIO.BCM)
@@ -153,13 +153,13 @@ def handleEncoder(enc):
     enc.resetState()
     # Now we need to handle our items.
     
-
 def handleShutterButton(value):
     global _lastEnc, _needsConfig
     # This will need a lot of work to be good.
     # But it'll do for now.
     # Wait until we're done twirling the encoder and make sure we're not in need of a reconfigure.
-    if (time.monotonic() > _lastEnc + 0.5) and not _needsConfig and value:
+    timenow = time.monotonic()
+    if (timenow > _lastEnc + 0.5) and not _needsConfig and value:
         # Ignore any presses if we have the encoder button pressed at the same time.
         print("Click")
         cam.shutter()
@@ -170,12 +170,12 @@ def updateRegOverlay(overlay):
     overlay.clearLines() # We're updating dynamic info, so these need to be cleaned and rewritten.
     overlay.addLine("ISO: {0}".format(cam.ISO[0]))
     overlay.addLine("Exposure: {0}".format(cam.exposure[0]))
-    overlay.addLine("Mode: {0}".format(cam.mode))
+    overlay.addLine("Mode: {0}".format(cam.mode[0]))
     overlay.showOverlay()
     
     
 
-shutter     = controls.button(_shutterPin, bounce=250, callback=handleShutterButton)
+shutter     = controls.button(_shutterPin, bounce=200, callback=handleShutterButton)
 encoder     = controls.encoder(_encIntPin, timeout=10, callback=handleEncoder)
 encoder.resetState()
 
@@ -196,11 +196,15 @@ while True:
     #checkShutterButton()
     #encoder.reset_State()
     time.sleep(0.1)
-    if (time.monotonic() > _lastEnc + 0.5) and _needsConfig:
+    timenow = round(time.monotonic(), 2)
+    if (timenow > _lastEnc + 0.5) and _needsConfig:
         cam.reconfigure()
         _needsConfig = False
         encoder.resetState()
-    if time.monotonic() > _lastEnc + 1:
+    if timenow > _lastEnc + 1:
         encoder.resetState() # Clear lurking interrupts after a few seconds.
+    if round(timenow, 0) % 5 == 0:
+        # Make sure we save our config regularly.
+        cam_config.saveConfig
     updateRegOverlay(regOverlay)
     #encoder.resetState() # Don't want any lurking interrupts
