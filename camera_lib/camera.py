@@ -341,13 +341,13 @@ class Camera:
         filename = base_path + "IMG_" + pad + str(next_image)
         if filename != self._lastSavedImg:
             self._lastSavedImg = filename
+            self.increaseCount()
             if cam_config.cfg["Settings"].getboolean("JPEG"):
                 print("Saving {0}.jpg".format(filename))
                 request.save("main", filename + ".jpg")
             if cam_config.cfg["Settings"].getboolean("DNG"):
                 print("Saving {0}.dng".format(filename))
                 request.save_dng(filename + ".dng")
-            self.increaseCount()
         else:
             print("Already saving that image.")
         request.release()

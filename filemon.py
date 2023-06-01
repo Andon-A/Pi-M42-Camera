@@ -8,17 +8,15 @@ import configparser
 sys.path.append("./camera_lib") # We need to know where things are.
 
 # Our own files.
-#from system import Service
+import system
 
-watch_path = "/software" # What folder we're watching
-self_path = "/software/filemon.py"
+watch_path = os.getcwd() # What folder we're watching
 wait_time = 10 # Seconds since the last event before we do anything
-exclude = ["config.cfg"]
+wait_now = 0
 
-#cam_service = system.Service("camera") # Our service for the main camera software.
-#own_service = system.Service("camera_filemon") # Our own watchdog service.
+cam_service = system.Service("camera") # Our service for the main camera software.
+own_service = system.Service("camera_filemon") # Our own watchdog service.
 
-_queue = [] # Our queue of items
 _restartSelf = False
 _restartCam = False
 
@@ -26,41 +24,57 @@ _restartCam = False
 fileconfig = configparser.ConfigParser(allow_no_value=True)
 fileconfig.read("./camera_lib/config/updater.cfg")
 
+start_tries = 0
 
-def addToQueue(path):
-    # Add an item to the queue
-    if path not in _queue:
-        _queue.append(path)
-        
-def processQueue():
-    # Checks the queue to see what services we need to restart.
-    if self_path in _queue:
-        # We've been updated, so we need to restart.
-        _restartSelf = True
-        pass 
-    for file in fileconfig["Files"]:
-        if file in _queue and file != self_path:
-            if file[file.rfind("/")+1:] not in exclude and not os.path.isdir (file):
-                # We don't want to force a restart just because of a folder change.
-                # Also make sure we're not restarting on one of our excluded files.
-                _restartCam = True
-        if file in _queue and file == "/software/camera_lib/system.py":
-            # We depend on this one.
-            _restartSelf = True
-    #doRestarts()
+if cam_service.isRunning:
+    print("Camera service found and running.")
+else:
+    print("Camera service not running.")
+    start_tries = 5 # Don't try to start it, it should start itself. Or we don't want it on.
+if own_service.isRunning:
+    print("Monitor running as a service.")
+else:
+    print("Monitor not running as a service.")
+
+
+def isFileWatched(file):
+    for path in fileconfig["Monitor"]:
+        fpath = watch_path + "/" + path
+        if file == fpath:
+            return True, fileconfig["Monitor"][path]
+    return False, ""
+
 
 def doRestarts():
+    global _restartCam, _restartSelf
     # Restart the camera first, then us. This way we don't accidentally shut ourselves down first.
     if _restartCam:
         if cam.isRunning:
+            print("Restarting camera.")
             cam_service.restart()
+            _restartCam = False
+            time.sleep(0.5)
+        else:
+            print("Camera cannot be restarted as it is not on.")
+            _restartCam = False
     if _restartSelf:
-        own_service.restart()       
+        print("Restarting file monitor.")
+        own_service.restart()
+        exit()
 
 class MonitorFolder(FileSystemEventHandler):
     def on_modified(self, event):
-        print("File {0} modified".format(event.src_path))
-        addToQueue(event.src_path)
+        global _restartCam, _restartSelf
+        watch = isFileWatched(event.src_path)
+        if watch[0]:
+            print("File {0} modified.".format(event.src_path))
+            if (watch[1] == "cam" or watch[1] == "both") and not _restartCam:
+                print("Camera restart queued")
+                _restartCam = True
+            if (watch[1] == "self" or watch[1] == "both") and not _restartSelf:
+                print("Self restart queued")
+                _restartSelf = True
+            wait_now = time.monotonic()
         
 if __name__ == "__main__":
     src_path = watch_path
@@ -72,7 +86,18 @@ if __name__ == "__main__":
     observer.start()
     try:
         while(True):
-           time.sleep(1)
+            time.sleep(1)
+            while not cam_service.isRunning and start_tries < 5:
+                # Our camera service is down.
+                # Give it a little time, then restart it.
+                # But don't try too many times.
+                time.sleep(3)
+                cam_service.start()
+                start_tries += 1
+            if start_tries > 0 and cam_service.isRunning:
+                start_tries = 0
+            if (_restartCam or _restartSelf) and time.monotonic() > wait_now + wait_time:
+                doRestarts()
            
     except KeyboardInterrupt:
             observer.stop()

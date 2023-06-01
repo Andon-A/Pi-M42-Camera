@@ -60,27 +60,50 @@ class encoder:
             self.count = 5
             self.twist.clear_interrupts() # Make sure nothing is lurking.
             print("Encoder initailized")
-        
+    
     @property
     def pressed(self):
         # Returns our current pressed state.
         if self.enabled:
-            return self.twist.pressed
+            pressed = None
+            while pressed is None:
+                try:
+                    # print("Attempting get pressed")
+                    pressed = self.twist.pressed
+                except:
+                    # I2c error.
+                    time.sleep(0.05)
+            return pressed
         else:
-            return false
+            return False
     
     @property
     def count(self):
         if self.enabled:
-            return self.twist.count
+            count = None
+            while count is None:
+                try:
+                    # print("Attempting count get")
+                    count = self.twist.count
+                except:
+                    # I2c error.
+                    time.sleep(0.05)
+            return count
         else:
             return 0
     
     @count.setter
     def count(self, count):
         if self.enabled:
-            self.twist.count = count
-            return self.twist.count
+            c = None
+            while c is None:
+                try:
+                    # print("Attempting count set")
+                    self.twist.count = count
+                    c = True
+                except:
+                    time.sleep(0.05)
+            return self.count
         else:
             return 0
         
@@ -99,8 +122,18 @@ class encoder:
     def color(self, color):
         # Sets the color. Color is an RGP tuple
         if self.enabled:
-            self.twist.set_color(color[0], color[1], color[2])
+            c = None
+            while c is None:
+                try:
+                    # print("Attemtping color")
+                    self.twist.set_color(color[0], color[1], color[2])
+                    c = True
+                except:
+                    time.sleep(0.05)                
             self._color = color
+            return True
+        else:
+            return False
     
     @property
     def timeout(self):
@@ -116,19 +149,35 @@ class encoder:
                 ms = 1
             elif ms > 65000:
                 ms = 65000
-            self.twist.set_int_timeout(ms)
+            tm = None
+            while tm is None:
+                try:
+                    # print("Attemtping timout")
+                    self.twist.set_int_timeout(ms)
+                    tm = True
+                except:
+                    time.sleep(0.05)
             self._timeout = ms
+            return self._timeout
+        else:
+            return 0
     
     def resetState(self):
         self.count = 5
         self.direction = "None"
         self.pressedChange = False
-        # Attempt to clear our interrupts. This usually works for rotation
-        self.twist.clear_interrupts()
+        # Attempt to clear our interrupts
+        try:
+            self.twist.clear_interrupts()
+        except:
+            pass
         # If we're stubborn (Like, you know. The button for it.), try until we succeed.
         while self.hasInterrupt:
-            time.sleep(0.03)
-            self.twist.clear_interrupts()
+            time.sleep(0.05) # Don't go too fast and overwhelm the i2c bus
+            try:
+                self.twist.clear_interrupts()
+            except:
+                pass
     
     def detectInput(self, channel):
         # This is triggered when we detect an interrupt.

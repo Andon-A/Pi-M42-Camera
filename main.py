@@ -26,6 +26,7 @@ _settingsMode = False
 
 # Did we have an interrupt fire when another one was firing?
 _lastEnc = 0
+_lastPress = 0
 _needsConfig = False
 
 # Our interfaces
@@ -91,7 +92,7 @@ def handleLiveMenu(menu, item):
     if menu == "ISO":
         # We have ISO, so set it.
         iso = item
-        if cam.ISO != iso:
+        if cam.ISO[0].lower() != str(iso).lower():
             cam.ISO = iso
             print("Camera ISO set to {0}".format(cam.ISO))
             _needsConfig = True
@@ -100,7 +101,7 @@ def handleLiveMenu(menu, item):
             return False
     elif menu == "Exposure":
         exp = item
-        if cam.exposure != exp:
+        if cam.exposure[0].lower() != exp.lower():
             cam.exposure = exp
             print("Camera exposure set to {0}".format(cam.exposure))
             _needsConfig = True
@@ -153,29 +154,42 @@ def handleEncoder(enc):
     enc.resetState()
     # Now we need to handle our items.
     
-def handleShutterButton(value):
-    global _lastEnc, _needsConfig
+def handleShutterButton(button):
+    global _lastEnc, _needsConfig, _lastPress
     # This will need a lot of work to be good.
     # But it'll do for now.
     # Wait until we're done twirling the encoder and make sure we're not in need of a reconfigure.
     timenow = time.monotonic()
-    if (timenow > _lastEnc + 0.5) and not _needsConfig and value:
-        # Ignore any presses if we have the encoder button pressed at the same time.
-        print("Click")
+    if ((timenow > _lastEnc + 0.5)
+        and timenow > _lastPress + 0.2
+        and not _needsConfig
+        and button.pressed):
+        print("Click {0}".format(round(time.monotonic(),2)))
+        _lastPress = time.monotonic()
         cam.shutter()
 
 
 def updateRegOverlay(overlay):
     # Updates our regular overlay.
     overlay.clearLines() # We're updating dynamic info, so these need to be cleaned and rewritten.
-    overlay.addLine("ISO: {0}".format(cam.ISO[0]))
-    overlay.addLine("Exposure: {0}".format(cam.exposure[0]))
-    overlay.addLine("Mode: {0}".format(cam.mode[0]))
+    current = menu.liveMenu.getCurrentSelect()[0]
+    if current.lower() == "iso":
+        overlay.addLine("ISO: {0}".format(cam.ISO[0]), color=(255, 255, 0, 255))
+    else:
+        overlay.addLine("ISO: {0}".format(cam.ISO[0]))
+    if current.lower() == "exposure":
+        overlay.addLine("Exposure: {0}".format(cam.exposure[0]), color=(255, 255, 0, 255))
+    else:
+        overlay.addLine("Exposure: {0}".format(cam.exposure[0]))
+    if current.lower() == "mode":
+        overlay.addLine("Mode: {0}".format(cam.mode[0]), color=(255, 255, 0, 255))
+    else:
+        overlay.addLine("Mode: {0}".format(cam.mode[0]))
     overlay.showOverlay()
     
     
 
-shutter     = controls.button(_shutterPin, bounce=200, callback=handleShutterButton)
+shutter     = controls.button(_shutterPin, bounce=50, callback=handleShutterButton)
 encoder     = controls.encoder(_encIntPin, timeout=10, callback=handleEncoder)
 encoder.resetState()
 
@@ -201,7 +215,7 @@ while True:
         cam.reconfigure()
         _needsConfig = False
         encoder.resetState()
-    if timenow > _lastEnc + 1:
+    if timenow > _lastEnc + 2 and encoder.hasInterrupt:
         encoder.resetState() # Clear lurking interrupts after a few seconds.
     if round(timenow, 0) % 5 == 0:
         # Make sure we save our config regularly.
