@@ -181,8 +181,7 @@ class Camera:
         # And also start the camera.
         self.camera.configure(self.getConfig())
         self._currentCFG = self.getConfig()
-        self.camera.start_preview(Preview.DRM, width=800, height=480,
-                                    transform=Transform(hflip=1, vflip=1))
+        self.camera.start_preview(Preview.DRM, width=800, height=480, transform=Transform(hflip=1, vflip=1))
         self.camera.start()
         return True
     
@@ -201,8 +200,7 @@ class Camera:
             self.camera.configure(new_cfg)
             self._currentCFG = new_cfg
             self.camera.stop_preview()
-            self.camera.start_preview(Preview.DRM, width=800, height=480,
-                                        transform=Transform(hflip=1, vflip=1))
+            self.camera.start_preview(Preview.DRM, width=800, height=480, transform=Transform(hflip=1, vflip=1))
             self.camera.start()
             self._needsConfig = False
     

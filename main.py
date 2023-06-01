@@ -185,7 +185,7 @@ cam = camera.Camera()
 cam.startCam()
 
 # Regular (Camera view) overlay
-regOverlay = camera.Overlay(camera=cam, textOrigin=(10, 20))
+regOverlay = camera.Overlay(camera=cam, textOrigin=(10, 25))
 
 # We'll need an Overlay for each of our text menus.
 
