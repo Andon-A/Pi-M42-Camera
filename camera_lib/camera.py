@@ -102,12 +102,12 @@ class Camera:
             # Our functions want a number, so we treat "0" as auto.
             self._exp_raw = 0
         else:
-            if item[-1:] == '"':
+            if exp[-1:] == '"':
                 # We have an exposure denoted in seconds. This is an easy convert.
                 self._exp_raw = float(exp[:-1])
             else:
                 # We have an exposure denoted by division, IE, 1/XXXX
-                self._exp_raw = 1.0 / float(item[2:])
+                self._exp_raw = 1.0 / float(exp[2:])
         # Make sure we have good data
         if self._exp_raw > 239:
             self._exp_raw = 239
@@ -117,7 +117,6 @@ class Camera:
             self._exp_str = 'Auto'
         self._needsConfig = True # Make sure we reconfigure the camera.
         cam_config.cfg["Settings"]["Exposure"] = self._exp_str
-        cam_config.save_config()
         return self.exposure
     
     @ISO.setter
@@ -143,7 +142,6 @@ class Camera:
                 self._iso_raw = iso
         self._needsConfig = True
         cam_config.cfg["Settings"]["ISO"] = self._iso_str
-        cam_config.save_config()
         return self.ISO
     
     @mode.setter
@@ -171,7 +169,6 @@ class Camera:
         else:
             newMode = int(newMode)
         cam_config.cfg["Settings"]["Mode"] = str(newMode)
-        cam_config.save_config()
         self._mode = newMode
         self._needsConfig = True # Make sure we reconfigure the camera if this changes.
         return newMode
@@ -295,7 +292,7 @@ class Camera:
             ext = ".icount"
         elif self.mode == 1:
             ext = ".vcount"
-        else
+        else:
             return False
         # First, make our new file.
         with open(str(count + 1) + ext, 'w') as newfile:

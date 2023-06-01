@@ -25,7 +25,6 @@ _encIntPin  = 6
 _settingsMode = False
 
 # Did we have an interrupt fire when another one was firing?
-_encPriority = False
 _lastEnc = 0
 _needsConfig = False
 
@@ -123,9 +122,8 @@ def handleLiveMenu(menu, item):
             return False
         
 def handleEncoder(enc):
-    global _settingsMode, _encPriority, _lastEnc
+    global _settingsMode, _lastEnc
     _lastEnc = time.monotonic()
-    _encPriority = True
     # Handle's the encoder's direction.
     if enc.direction == "Left":
         menuPrevOption()
@@ -157,13 +155,14 @@ def handleEncoder(enc):
     
 
 def handleShutterButton(value):
-    global _encPriority
+    global _lastEnc, _needsConfig
     # This will need a lot of work to be good.
     # But it'll do for now.
-    if value and not _encPriority:
+    # Wait until we're done twirling the encoder and make sure we're not in need of a reconfigure.
+    if (time.monotonic() > _lastEnc + 0.5) and not _needsConfig and value:
         # Ignore any presses if we have the encoder button pressed at the same time.
         print("Click")
-        # cam.shutter()
+        cam.shutter()
 
 
 def updateRegOverlay(overlay):
@@ -197,14 +196,11 @@ while True:
     #checkShutterButton()
     #encoder.reset_State()
     time.sleep(0.1)
-    # Twist doesn't seem to be firing interrupts right now.
-    if encoder.twist.moved or encoder.twist.pressed:
-        handleEncoder(encoder)
     if (time.monotonic() > _lastEnc + 0.5) and _needsConfig:
         cam.reconfigure()
         _needsConfig = False
-    if time.monotonic() > _lastEnc + 2:
+        encoder.resetState()
+    if time.monotonic() > _lastEnc + 1:
         encoder.resetState() # Clear lurking interrupts after a few seconds.
-    _encPriority = False
     updateRegOverlay(regOverlay)
     #encoder.resetState() # Don't want any lurking interrupts

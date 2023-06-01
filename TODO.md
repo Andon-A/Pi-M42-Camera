@@ -8,7 +8,8 @@ The following won't be included in this repository:
  - [X] Set up /photos
  - [X] Set up /Images folder in photos
  - [X] Set up /Videos folder in photos
-- [ ] Set up main program as a service
+- [X] Set up main program as a service
+- [X] Set up file monitor as a service
 - [X] Set up RTC
 
 ## Hardware
@@ -38,19 +39,19 @@ As with camera, the parts that do the things, not the actual doing of things.
 - [X] Set up battery voltage monitoring for charge status
 - [X] Set up CPU temperature monitoring
 ### Basic Software
-- [ ] Main loop that saves pictures to correct folder
-- [ ] Watchdog that detects new software and reboots program
+- [X] Main loop that saves pictures to correct folder
+- [X] Watchdog that detects new software and reboots program
 ### Moderate Software
 - [X] Overlay over the camera that gives information (ISO, Exposure, Mode)
 - [ ] Camera mode switching (Overlay required)
 - [ ] Add logging.
 ### Complex Software
 - [ ] Settings Menu
+- [ ] Preview Menu (Show taken picutres saved in .jpg)
 - [ ] Option to copy all pictures to plugged in USB
 - [ ] Updating settings from plugged in USB
 ### Bonus Software
 These are goals I'm not going to worry too much about initially
 - [ ] Incorporate better [color profiles](https://github.com/davidplowman/Colour_Profiles) ([Info](https://github.com/raspberrypi/picamera2/issues/253))
-- [ ] On-screen selection of Wifi, inc. Password (On-screen keyboard?!)
 - [ ] Battery percentage monitoring (Curve)
 - [ ] Battery percentage monitoring (Chunks)
