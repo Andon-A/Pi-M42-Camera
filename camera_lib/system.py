@@ -10,19 +10,13 @@ from gpiozero import CPUTemperature
 
 # We want our board definitions
 import board
-import digitalio
 
 # MCP3008 ADC. Used to read thermistor and battery voltage
 # TODO: Update to new ADC
 import math
-#import adafruit_mcp3xxx.mcp3008 as MCP
-#from adafruit_mcp3xxx.analog_in import AnalogIn
-
-# set up spi
-# Set up our backlight
-#backlight = Backlight()
-#backlight.fade_duration = 0
-#backlight.brightness = 12 # 0 to 100. 12% is a decent brightness in most situations.
+import adafruit_pcf8591.pcf8591 as PCF
+from adafruit_pcf8591.analog_in import AnalogIn
+from adafruit_pcf8591.analog_out import AnalogOut
 
 # Our services to handle.
 class Service:
@@ -60,31 +54,90 @@ class Service:
         os.system('systemctl restart --quiet %s.service' % self.name)
         return self.isRunning
 
-'''class ADC:
+class ADC:
     # A simple class for the ADC.
-    def __init__(self, spi=spi, cs=board.CE0):
-        self.cs = digitalio.DigitalInOut(cs) # Set up our chip select pin
-        self.ADC = MCP.MCP3008(spi, self.cs) # Set ourselves up
-        # Pins 0 through 7. We only use 0 and 2, but the others are available.
-        self.Pin0 = AnalogIn(self.ADC, MCP.P0) # Our board thermistor
-        self.Pin1 = AnalogIn(self.ADC, MCP.P1) # Batt thermistor. Doesn't physically exist.
-        self.Pin2 = AnalogIn(self.ADC, MCP.P2) # Our Battery voltage
-        self.Pin3 = AnalogIn(self.ADC, MCP.P3) # 3 through 7 are avaiable to be soldered to.
-        self.Pin4 = AnalogIn(self.ADC, MCP.P4)
-        self.Pin5 = AnalogIn(self.ADC, MCP.P5)
-        self.Pin6 = AnalogIn(self.ADC, MCP.P6)
-        self.Pin7 = AnalogIn(self.ADC, MCP.P7)       
+    def __init__(self, i2c=board.I2C()):
+        self.pcf = PCF.PCF8591(i2c)
+        self.Pin0 = AnalogIn(self.pcf, PCF.A0)
+        self.Pin1 = AnalogIn(self.pcf, PCF.A1)
+        self.Pin2 = AnalogIn(self.pcf, PCF.A2)
+        self.Pin3 = AnalogIn(self.pcf, PCF.A3)
+        self.DAC  = AnalogOut(self.pcf, PCF.OUT)     
 
 class Battery:
     # Basic battery voltage monitoring.
-    def __init__(self, pin):
-        self.pin = pin
-        self.voltage = self.pin.voltage
+    def __init__(self, pin, cells=2):
+        self._pin = pin
+        self._cells = cells # Number of cells the battery pack has.
         # TODO: Low and high voltage levels
         # Maybe: Add a voltage curve to monitor
         # Maybe: Add a few voltage points (10%, 25%, 50%, 75%, 100%)
-        self.low_voltage = 0.00
-        self.high_voltage = 0.00'''
+        self.yel_pct = 0.35 # Indicator should be yellow at 35% battery
+        self.red_pct = 0.25 # Indicator should be red at 25% battery.
+        # We turn the system off at a certain voltage because percent doesn't read that finely.
+        self.cutoff_voltage = 3.71 * self._cells # About 15%
+        self.high_voltage = 0.00
+    
+    @property
+    def voltage(self):
+        # We have to run the input voltage through a divider
+        v = self._pin.voltage
+        # Divider is 430 ohm (R1) and 220 ohm (R2)
+        # So math says Real Voltage is 2.955x Input
+        v = round(v * 2.955, 5)
+        return v
+    
+    @property
+    def chargePct(self):
+        # Returns the percentage of the battery's value.
+        # These use info from: https://blog.ampow.com/lipo-voltage-chart/
+        # We use the next level to determine. IE, > 4.15 is 100%, > 4.11 = 95%, etc
+        cells = self._cells
+        if self.voltage > (4.20 * cells):
+            print("Voltage higher than expected for number of cells.")
+            return 1.00
+        elif self.voltage > (4.15 * cells):
+            return 1.00
+        elif self.voltage > (4.11 * cells):
+            return 0.95
+        elif self.voltage > (4.08 * cells):
+            return 0.90
+        elif self.voltage > (4.02 * cells):
+            return 0.85
+        elif self.voltage > (3.98 * cells):
+            return 0.80
+        elif self.voltage > (3.95 * cells):
+            return 0.75
+        elif self.voltage > (3.91 * cells):
+            return 0.70
+        elif self.voltage > (3.87 * cells):
+            return 0.65
+        elif self.voltage > (3.85 * cells):
+            return 0.60
+        elif self.voltage > (3.84 * cells):
+            return 0.55
+        elif self.voltage > (3.82 * cells):
+            return 0.50
+        elif self.voltage > (3.80 * cells):
+            return 0.45
+        elif self.voltage > (3.79 * cells):
+            return 0.40
+        elif self.voltage > (3.77 * cells):
+            return 0.35
+        elif self.voltage > (3.75 * cells):
+            return 0.30
+        elif self.voltage > (3.73 * cells):
+            return 0.25
+        elif self.voltage > (3.71 * cells):
+            return 0.20
+        elif self.voltage > (3.69 * cells):
+            return 0.15
+        elif self.voltage > (3.61 * cells):
+            return 0.10
+        elif self.voltage > (3.27 * cells):
+            return 0.05
+        elif self.voltage <= (3.27 * cells):
+            return 0.00
 
 class CPU:
     # Basic CPU temperature monitoring

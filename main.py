@@ -10,6 +10,7 @@
 # Set our paths
 import sys
 sys.path.append('./camera_lib')
+import os
 
 import system, controls, camera, menu, cam_config # Our own libraries
 import time
@@ -168,6 +169,7 @@ def handleShutterButton(button):
         _lastPress = time.monotonic()
         cam.shutter()
 
+battXY = (360,760)
 
 def updateRegOverlay(overlay):
     # Updates our regular overlay.
@@ -185,13 +187,36 @@ def updateRegOverlay(overlay):
         overlay.addLine("Mode: {0}".format(cam.mode[0]), color=(255, 255, 0, 255))
     else:
         overlay.addLine("Mode: {0}".format(cam.mode[0]))
-    overlay.showOverlay()
+    batt_pct = int(batt.chargePct * 100)
+    if batt_pct < batt.red_pct:
+        overlay.addTextAtLoc("Batt: {0}%".format(batt_pct), color=(255, 0, 0, 255), loc=battXY)
+    elif batt_pct < batt.yel_pct:
+        overlay.addTextAtLoc("Batt: {0}%".format(batt_pct), color=(255, 255, 0, 255), loc=battXY)
+    else:
+        overlay.addTextAtLoc("Batt: {0}%".format(batt_pct), loc=battXY)
+    if not cam.isSaving:
+        # If we're saving, don't worry about updating.
+        overlay.showOverlay()
     
-    
+def queueShutdown(override=False):
+    # Cleanly shuts down the camera.
+    # Needs hardware support, but works for low battery.
+    while cam.isSaving and not override:
+        # Wait for our save to complete. If we have the override, skip this.
+        pass
+    print("Shutting down.")
+    filemon = system.Service("camera_filemon")
+    filemon.stop() # Turn off our file monitor so we don't auto restart just to shut down.
+    os.system('sudo shutdown -h now') # Turn off the machine.
+    exit()
 
 shutter     = controls.button(_shutterPin, bounce=50, callback=handleShutterButton)
 encoder     = controls.encoder(_encIntPin, timeout=10, callback=handleEncoder)
 encoder.resetState()
+
+# ADC and battery
+ADC = system.ADC()
+batt = system.Battery(ADC.Pin2)
 
 # Camera
 cam = camera.Camera()
@@ -220,5 +245,8 @@ while True:
     if round(timenow, 0) % 5 == 0:
         # Make sure we save our config regularly.
         cam_config.saveConfig
+    if batt.voltage <= batt.cutoff_voltage: # We're running into battery damage range.
+        cam_config.saveConfig # Make sure our current state is saved.
+        queueShutdown()
     updateRegOverlay(regOverlay)
     #encoder.resetState() # Don't want any lurking interrupts

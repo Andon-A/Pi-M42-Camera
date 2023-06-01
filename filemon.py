@@ -49,7 +49,7 @@ def doRestarts():
     global _restartCam, _restartSelf
     # Restart the camera first, then us. This way we don't accidentally shut ourselves down first.
     if _restartCam:
-        if cam.isRunning:
+        if cam_service.isRunning:
             print("Restarting camera.")
             cam_service.restart()
             _restartCam = False

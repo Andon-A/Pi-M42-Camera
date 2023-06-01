@@ -40,6 +40,7 @@ class Camera:
         self.Exposure = cam_config.cfg["Settings"]["Exposure"]
         self.ISO = cam_config.cfg["Settings"]["ISO"]
         self._lastSavedImg = None
+        self.isSaving = False
         
         # Our configurations
         self.auto_still = self.camera.create_still_configuration(main={"size": (4056, 3040)},
@@ -238,7 +239,7 @@ class Camera:
     
     def shutter(self):
         # Video stuff. WIP.
-        self.reconfigure()
+        #self.reconfigure()
         print("Shutter Pressed. Mode: {0}".format(self.mode))
         if self.mode[1] == 1 and not self._recording:
             self._recording = True
@@ -326,6 +327,7 @@ class Camera:
     
     def save_image(self):
         # Saves the still image as a JPEG and/or DNG as requested
+        self.isSaving = True
         request = self.camera.capture_request()
         base_path = cam_config.cfg["Info"]["ImgPath"]
         if not os.path.isdir(base_path):
@@ -352,6 +354,7 @@ class Camera:
             print("Already saving that image.")
         request.release()
         print("Released")
+        self.isSaving = False
         return True
     
     def write_overlay(self, overlay):
@@ -381,6 +384,7 @@ class Overlay:
         self._thickness = thickness
         self._bg = bg               # (0, 0, 0) RGB style
         self._lines = []            # We'll shove our lines of text into here.
+        self._otherTxt = []         # other text goes here.
 
     # Get and set our origin
     @property
@@ -443,19 +447,32 @@ class Overlay:
         self._lines[linenum] = (color, thick, text)
         return True
     
+    def addTextAtLoc(self, text, loc, color=(255,255,255,255), bold=False, scale=None):
+        # Adds a line at a specific X, Y location.
+        thick = self._thickness
+        if bold:
+            thick = self._thickness * 2
+        if scale is None:
+            scale = self._scale
+        self._otherTxt.append((color, thick, text, loc, scale))
+        return True
+    
     def clearLines(self):
         self._lines = []
+        self._otherTxt = []
         return True
     
     def showOverlay(self):
         # Rebuilds the overlay, then shows it on the camera.
         overlay = self.makeOverlay()
+        #self._camera.clear_overlay()
         self._camera.write_overlay(overlay)
         return True
             
     
     def writeLines(self, overlay):
         # Write each of our lines
+        # Start with standard lines.
         for idx in range(0, len(self._lines)):
             line = self._lines[idx]
             text = line[2]
@@ -466,4 +483,12 @@ class Overlay:
                 xpos = self._originX
                 ypos = self._originY + (idx * self.lineHeight)
                 cv2.putText(overlay, text, (xpos, ypos), self._font, self._scale, color, thickness)
+        # And our location-specified lines.
+        for line in self._otherTxt:
+            text = line[2]
+            color = line[0]
+            thickness = line[1]
+            pos = line[3]
+            scale = line[4]
+            cv2.putText(overlay, text, pos, self._font, scale, color, thickness)
         return True
