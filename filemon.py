@@ -13,6 +13,7 @@ sys.path.append("./camera_lib") # We need to know where things are.
 watch_path = "/software" # What folder we're watching
 self_path = "/software/filemon.py"
 wait_time = 10 # Seconds since the last event before we do anything
+exclude = ["config.cfg"]
 
 #cam_service = system."Camera" # Our service for the main camera software.
 #own_service = "Camera_Filemon" # Our own watchdog service.
@@ -28,8 +29,8 @@ fileconfig.read("./camera_lib/config/updater.cfg")
 
 def addToQueue(path):
     # Add an item to the queue
-    if path not in queue:
-        queue.append(path)
+    if path not in _queue:
+        _queue.append(path)
         
 def processQueue():
     # Checks the queue to see what services we need to restart.
@@ -39,7 +40,10 @@ def processQueue():
         pass 
     for file in fileconfig["Files"]:
         if file in _queue and file != self_path:
-            _restartCam = True
+            if file[file.rfind("/")+1:] not in exclude and not os.path.isdir (file):
+                # We don't want to force a restart just because of a folder change.
+                # Also make sure we're not restarting on one of our excluded files.
+                _restartCam = True
         if file in _queue and file == "/software/camera_lib/system.py":
             # We depend on this one.
             _restartSelf = True

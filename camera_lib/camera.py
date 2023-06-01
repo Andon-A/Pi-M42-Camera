@@ -261,11 +261,54 @@ class Camera:
             saver = threading.Thread(target=self.save_image)
             saver.start()
     
+    # Our method for determining the next image or video.
+    # We create a file in the main folder with the extension .icount or .vcount
+    # And increment that.
+    # This way we don't have to worry about writing the config file a million times,
+    # Or potentially corrupting it. Again.
+    
+    def getCount(self):
+        ext = ""
+        if self.mode == 0: # Still
+            ext = ".icount"
+        elif self.mode == 1:
+            ext = ".vcount"
+        else:
+            return -1
+        # Get our files.
+        flist = os.listdir()
+        file = ""
+        # And find our specific file.
+        for f in flist:
+            if ext == f[-7:]:
+                file = f # Keep looping. We want the largest number one, if it exists.
+        if f != "":
+            count = int(file[:-7])
+        else:
+            count = 0 # We currently have zero.
+        return count
+        
+    def increaseCount(self):
+        count = self.getCount # Determine what our count is.
+        ext = ""
+        if self.mode == 0: # Still
+            ext = ".icount"
+        elif self.mode == 1:
+            ext = ".vcount"
+        else
+            return False
+        # First, make our new file.
+        with open(str(count + 1) + ext, 'w') as newfile:
+            pass
+        # Now, remove the old one.
+        os.remove(str(count) + ext)
+        return True
+    
     def get_video_filename(self):
         base_path = cam_config.cfg["Info"]["VidPath"]
         if not os.path.isdir(base_path):
             os.makedirs(base_path)
-        next_vid = cam_config.cfg["Info"].getint("NextVid")
+        next_vid = self.getCount() + 1
         # Our pad keeps us at a minimum of 4 digits.
         # If we go to 10k videos (Or images, that works the same)
         # Then the number will expand just fine.
@@ -277,9 +320,7 @@ class Camera:
         elif next_vid < 1000:
             pad = "0"
         filename = base_path + "VID_" + pad + str(next_vid) + ".h264"
-        next_vid += 1
-        cam_config.cfg["Info"]["NextVid"] = str(next_vid)
-        cam_config.save_config()
+        self.increaseCount()
         return filename
     
     def save_image(self):
@@ -288,7 +329,7 @@ class Camera:
         base_path = cam_config.cfg["Info"]["ImgPath"]
         if not os.path.isdir(base_path):
             os.makedirs(base_path)
-        next_image = cam_config.cfg["Info"].getint("NextImg")
+        next_image = self.getCount() + 1
         pad = ""
         if next_image < 10:
             pad = "000"
@@ -305,10 +346,7 @@ class Camera:
             request.save_dng(filename + ".dng")
         request.release()
         print("Released")
-        next_image += 1
-        cam_config.cfg["Info"]["NextImg"] = str(next_image)
-        cam_config.save_config()
-        print("Saved config")
+        self.increaseCount()
         return True
     
     def write_overlay(self, overlay):
