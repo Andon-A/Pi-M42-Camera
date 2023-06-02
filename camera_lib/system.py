@@ -2,9 +2,9 @@
 # Handles various system pieces, including some hardware.
 
 import os # We need OS to control services
-#from rpi_backlight import Backlight # And our backlight
 import RPi.GPIO as GPIO # We'll need GPIO for our ADC and thermistor
 GPIO.setmode(GPIO.BCM)
+import time
 
 from gpiozero import CPUTemperature
 
@@ -81,7 +81,12 @@ class Battery:
     @property
     def voltage(self):
         # We have to run the input voltage through a divider
-        v = self._pin.voltage
+        v = None
+        while v is None:
+            try:
+                v = self._pin.voltage
+            except:
+                time.sleep(0.01)
         # Divider is 430 ohm (R1) and 220 ohm (R2)
         # So math says Real Voltage is 2.955x Input
         v = round(v * 2.955, 5)

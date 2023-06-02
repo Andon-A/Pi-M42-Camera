@@ -17,6 +17,13 @@ import time
 import RPi.GPIO as GPIO
 GPIO.setmode(GPIO.BCM)
 
+# Our backlight control.
+from rpi_backlight import Backlight # And our backlight
+backlight = Backlight()
+# Set the brightness. I've found that ~10% is plenty bright in most situations.
+backlight.fade_duration = 0 # We want changes instantly
+backlight.brightness = 10
+
 # Pin assignments
 _shutterPin = 12
 _encIntPin  = 6
@@ -124,6 +131,7 @@ def handleLiveMenu(menu, item):
             return False
         
 def handleEncoder(enc):
+    #print("Handling Encoder")
     global _settingsMode, _lastEnc
     _lastEnc = time.monotonic()
     # Handle's the encoder's direction.
@@ -135,7 +143,6 @@ def handleEncoder(enc):
         handleAdjust(getCurrentSelectMenu())
     # Handle the button press.
     if enc.pressedChange and enc.pressed:
-        print("Pressed")
         encTimer = time.monotonic() # When we started listening.
         t = time.monotonic() - encTimer
         while enc.pressed and t <= 5.0: # Wait until we have gone for 5 seconds or we release.
@@ -227,6 +234,9 @@ regOverlay = camera.Overlay(camera=cam, textOrigin=(10, 25))
 
 # We'll need an Overlay for each of our text menus.
 
+_isPressed = False
+
+
 while True:
     #print("Interface Board temp: " + str(round(boardTemp.temp_F, 2)))
     #print("CPU Temp: " + str(round(cpuTemp.temp_F, 2)))
@@ -241,6 +251,7 @@ while True:
         _needsConfig = False
         encoder.resetState()
     if timenow > _lastEnc + 2 and encoder.hasInterrupt:
+        # print("Encoder has interrupt. Clearing.")
         encoder.resetState() # Clear lurking interrupts after a few seconds.
     if round(timenow, 0) % 5 == 0:
         # Make sure we save our config regularly.
@@ -248,5 +259,18 @@ while True:
     if batt.voltage <= batt.cutoff_voltage: # We're running into battery damage range.
         cam_config.saveConfig # Make sure our current state is saved.
         queueShutdown()
+    # Pressing the button doesn't seem like it's triggering the interrupt.
+    if encoder.pressed and not _isPressed:
+        _isPressed = True
+        encoder.isPressed = True
+        encoder.pressedChange = True
+        handleEncoder(encoder)
+        time.sleep(0.5) # Give us a little debounce time.
+    elif not encoder.pressed and _isPressed:
+        _isPressed = False
+        encoder.isPressed = False
+        encoder.pressedChange = True
+        handleEncoder(encoder)
+        time.sleep(0.5)
     updateRegOverlay(regOverlay)
     #encoder.resetState() # Don't want any lurking interrupts

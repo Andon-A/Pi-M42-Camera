@@ -32,6 +32,7 @@ Due to the above hardware, the following are required:
 
 The following are used, but not necessary for the camera functions:
 - [SFTP to access files](https://pimylifeup.com/raspberry-pi-ftp/)
+- [RPI Backlight](https://github.com/linusg/rpi-backlight). You'll need to do some setup for it to work.
 
 I've also done the following:
 - Cleaned up startup for a faster boot. I used [this tutorial](https://singleboardbytes.com/637/how-to-fast-boot-raspberry-pi.htm) for some cleaning. I didn't go to extreme, but every bit helps.
