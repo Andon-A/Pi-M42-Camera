@@ -20,9 +20,9 @@ GPIO.setmode(GPIO.BCM)
 # Our backlight control.
 from rpi_backlight import Backlight # And our backlight
 backlight = Backlight()
-# Set the brightness. I've found that ~10% is plenty bright in most situations.
+# Set the brightness.
 backlight.fade_duration = 0 # We want changes instantly
-backlight.brightness = 10
+backlight.brightness = 33
 
 # Pin assignments
 _shutterPin = 12
