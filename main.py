@@ -22,7 +22,7 @@ from rpi_backlight import Backlight # And our backlight
 backlight = Backlight()
 # Set the brightness.
 backlight.fade_duration = 0 # We want changes instantly
-backlight.brightness = 33
+backlight.brightness = 75
 
 # Pin assignments
 _shutterPin = 12

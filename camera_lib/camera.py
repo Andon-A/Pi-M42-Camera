@@ -43,6 +43,9 @@ class Camera:
         self.isSaving = False
         
         # Our configurations
+        #
+        # TODO: Somehow: Change this to have controls applied later.
+        # They don't seem to be applying correctly like this.
         self.auto_still = self.camera.create_still_configuration(main={"size": (4056, 3040)},
                                                             lores={"size": (800, 480)}, display="lores",
                                                             raw={}, buffer_count=2,
