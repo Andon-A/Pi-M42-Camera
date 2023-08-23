@@ -103,7 +103,7 @@ def handleLiveMenu(menu, item):
         if cam.ISO[0].lower() != str(iso).lower():
             cam.ISO = iso
             print("Camera ISO set to {0}".format(cam.ISO))
-            _needsConfig = True
+            cam.setControls()
             return True
         else:
             return False
@@ -112,7 +112,7 @@ def handleLiveMenu(menu, item):
         if cam.exposure[0].lower() != exp.lower():
             cam.exposure = exp
             print("Camera exposure set to {0}".format(cam.exposure))
-            _needsConfig = True
+            cam.setControls()
             return True
         else:
             return False

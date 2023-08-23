@@ -43,34 +43,10 @@ class Camera:
         self.isSaving = False
         
         # Our configurations
-        #
-        # TODO: Somehow: Change this to have controls applied later.
-        # They don't seem to be applying correctly like this.
-        self.auto_still = self.camera.create_still_configuration(main={"size": (4056, 3040)},
+        self.still = self.camera.create_still_configuration(main={"size": (4056, 3040)},
                                                             lores={"size": (800, 480)}, display="lores",
                                                             raw={}, buffer_count=2,
                                                             )
-
-        self.exp_still = self.camera.create_still_configuration( main={"size": (4056, 3040)},
-                                                            lores={"size": (800, 480)}, display="lores",
-                                                            raw={}, buffer_count=2,
-                                                            controls={"ExposureTime": self.getExposure()}
-                                                            )
-        
-        self.iso_still = self.camera.create_still_configuration( main={"size": (4056, 3040)},
-                                                            lores={"size": (800, 480)}, display="lores",
-                                                            raw={}, buffer_count=2,
-                                                            controls={"AnalogueGain": self.getAnalogueGain()}
-                                                            )
-        
-        self.exp_iso_still = self.camera.create_still_configuration( 
-                                                            main={"size": (4056, 3040)},
-                                                            lores={"size": (800, 480)}, display="lores",
-                                                            raw={}, buffer_count=2,
-                                                            controls={"ExposureTime": self.getExposure(),
-                                                            "AnalogueGain": self.getAnalogueGain()}
-                                                            )
-
         self.video = self.camera.create_video_configuration(
                                                             main={"size": (2048, 1536)},
                                                             lores={"size": (800, 480)}, display="lores",
@@ -192,7 +168,23 @@ class Camera:
         # And the preview.
         self.camera.stop_preview()
         self.camera.stop()
-        
+    
+    def setControls(self):
+        # Sets the camera's exposure and ISO.
+        if self.exposure[0] != "Auto" and self.ISO[0] != "Auto":
+            # Manual
+            self.camera.set_controls({"ExposureTime": self.getExposure(), "AnalogueGain": self.getAnalogueGain()})
+        elif self.exposure[0] != "Auto" and self.ISO[0] == "Auto":
+            # Auto ISO, manual exposure
+            self.camera.set_controls({"ExposureTime": self.getExposure(), "AwbEnable": True})
+        elif self.exposure[0] == "Auto" and self.ISO[0] != "Auto":
+            # Auto Exposure, manual ISO
+            self.camera.set_controls({"AnalogueGain": self.getAnalogueGain(), "AeEnable":True})
+        else:
+            # Full auto.
+            self.camera.set_controls({"AeEnable":True, "AwbEnable": True})
+        # This won't re-start the stream.
+    
     def reconfigure(self):
         # Stops the camera, reconfigures, then restarts the preview.
         # Only applies if the configuration is actually different.
@@ -200,6 +192,7 @@ class Camera:
         if ((self._currentCFG != new_cfg) or self._needsConfig) and not self._recording:
             self.camera.stop()
             self.camera.configure(new_cfg)
+            self.setControls() # Set our exposure and ISO
             self._currentCFG = new_cfg
             self.camera.stop_preview()
             self.camera.start_preview(Preview.DRM, width=800, height=480, transform=Transform(hflip=1, vflip=1))
@@ -228,15 +221,7 @@ class Camera:
             # Video mode.
             return self.video
         elif mode == 0:
-            # Camera mode.
-            if self.exposure[1] > 0 and self.ISO[1] > 0:
-                return self.exp_iso_still
-            elif self.exposure[1] > 0 and self.ISO[1] == 0:
-                return self.exp_still
-            elif self.exposure[1] == 0 and self.ISO[1] > 0:
-                return self.iso_still
-            else:
-                return self.auto_still
+            return self.still
         else:
             return None
     
