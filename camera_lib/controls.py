@@ -9,24 +9,18 @@ import time
 import qwiic_twist
 
 class button:
-    def __init__(self, pin, inverted=False, bounce=100, callback=None):
+    def __init__(self, pinIn, pinOut, bounce=100, callback=None):
         # Set up a button.
         self.pin = pin
-        self.inverted = inverted
         self.callback = callback
-        if self.inverted:
-            GPIO.setup(self.pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-            GPIO.add_event_detect(self.pin, GPIO.FALLING, bouncetime=bounce, callback=self.getPressed)
-        else:
-            GPIO.setup(self.pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-            GPIO.add_event_detect(self.pin, GPIO.RISING, bouncetime=bounce, callback=self.getPressed)
-    
+        GPIO.setup(self.pinIn, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+        GPIO.setup(self.pinOut, GPIO.OUT)
+        GPIO.output(self.pinOut, 1)
+        GPIO.add_event_detect(self.pin, GPIO.RISING, bouncetime=bounce, callback=self.getPressed)
+
     @property
-    def pressed(self):
-        status = GPIO.input(self.pin)       
-        if self.inverted:
-            status = not status
-        return status
+    def pressed(self):     
+        return GPIO.input(self.pin)
     
     def getPressed(self, channel):
         self.callback(self)

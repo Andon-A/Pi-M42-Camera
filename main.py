@@ -25,8 +25,9 @@ backlight.fade_duration = 0 # We want changes instantly
 backlight.brightness = 75
 
 # Pin assignments
-_shutterPin = 12
-_encIntPin  = 6
+_shutterPinIn = 21 #d21
+_shutterPinUp = 20 #d20
+_powerPin = 16 #d16
 
 
 # Are we in settings?
@@ -36,11 +37,6 @@ _settingsMode = False
 _lastEnc = 0
 _lastPress = 0
 _needsConfig = False
-
-# Our interfaces
-#adc         = system.ADC()
-cpuTemp     = system.CPU()
-#battery     = system.Battery(adc.Pin2)
 
 def menuNextOption():
     # Selects the next option from the appropriate menu.
@@ -194,13 +190,14 @@ def updateRegOverlay(overlay):
         overlay.addLine("Mode: {0}".format(cam.mode[0]), color=(255, 255, 0, 255))
     else:
         overlay.addLine("Mode: {0}".format(cam.mode[0]))
-    batt_pct = int(batt.chargePct * 100)
-    if batt_pct < batt.red_pct:
-        overlay.addTextAtLoc("Batt: {0}%".format(batt_pct), color=(255, 0, 0, 255), loc=battXY)
-    elif batt_pct < batt.yel_pct:
-        overlay.addTextAtLoc("Batt: {0}%".format(batt_pct), color=(255, 255, 0, 255), loc=battXY)
+    if batt.charging:
+        overlay.addTextAtLoc("Batt: {0}%".format(batt.cap), color=(0, 255, 0, 255),loc=battXY)
+    if batt.cap < 33:
+        overlay.addTextAtLoc("Batt: {0}%".format(batt.cap), color=(255, 0, 0, 255), loc=battXY)
+    elif batt.cap < 40:
+        overlay.addTextAtLoc("Batt: {0}%".format(batt.cap), color=(255, 255, 0, 255), loc=battXY)
     else:
-        overlay.addTextAtLoc("Batt: {0}%".format(batt_pct), loc=battXY)
+        overlay.addTextAtLoc("Batt: {0}%".format(batt.cap), loc=battXY)
     if not cam.isSaving:
         # If we're saving, don't worry about updating.
         overlay.showOverlay()
@@ -217,13 +214,11 @@ def queueShutdown(override=False):
     os.system('sudo shutdown -h now') # Turn off the machine.
     exit()
 
-shutter     = controls.button(_shutterPin, bounce=50, callback=handleShutterButton)
-encoder     = controls.encoder(_encIntPin, timeout=10, callback=handleEncoder)
+shutter     = controls.button(_shutterPinIn, _shutterPinOut, bounce=50, callback=handleShutterButton)
 encoder.resetState()
 
-# ADC and battery
-ADC = system.ADC()
-batt = system.Battery(ADC.Pin2)
+# Battery
+batt = system.Battery()
 
 # Camera
 cam = camera.Camera()
@@ -256,9 +251,9 @@ while True:
     if round(timenow, 0) % 5 == 0:
         # Make sure we save our config regularly.
         cam_config.saveConfig
-    if batt.voltage <= batt.cutoff_voltage: # We're running into battery damage range.
-        cam_config.saveConfig # Make sure our current state is saved.
-        queueShutdown()
+    #if batt.voltage <= batt.cutoff_voltage: # We're running into battery damage range.
+    #    cam_config.saveConfig # Make sure our current state is saved.
+    #    queueShutdown()
     # Pressing the button doesn't seem like it's triggering the interrupt.
     if encoder.pressed and not _isPressed:
         _isPressed = True
