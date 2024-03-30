@@ -242,6 +242,7 @@ while True:
     #encoder.reset_State()
     time.sleep(0.1)
     timenow = round(time.monotonic(), 2)
+    # Time is given in seconds.
     if (timenow > _lastEnc + 0.5) and _needsConfig:
         cam.reconfigure()
         _needsConfig = False
@@ -252,6 +253,9 @@ while True:
     if round(timenow, 0) % 5 == 0:
         # Make sure we save our config regularly.
         cam_config.saveConfig
+    if timenow > batt.lastUpdate + 5:
+        # Update our battery every 5 seconds.
+        batt.updateInfo()
     #if batt.voltage <= batt.cutoff_voltage: # We're running into battery damage range.
     #    cam_config.saveConfig # Make sure our current state is saved.
     #    queueShutdown()

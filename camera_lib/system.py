@@ -57,8 +57,9 @@ class Battery:
         self.cap = 0
         self.Vout = 0
         self.charging = False
+        self.lastUpdate = 0
         
-    def _getLastSerialData():
+    def _getLastSerialData(self):
     # Grabs the latest serial data.
         data = self.ser.read(self.ser.inWaiting())
         data = data.decode('ascii','ignore').split("\n")
@@ -68,7 +69,7 @@ class Battery:
             data = data[0] # Unless it's the only one we have.
         return data
     
-    def updateInfo():
+    def updateInfo(self):
         info = self._getLastSerialData()
         info = info[2:-2] # Trim the $s
         info = info.split(",") # Split it into it's components.
@@ -76,15 +77,15 @@ class Battery:
             # check our components.
             if "Vin" in comp:
                 # Are we charging?
-                if NG in comp:
-                    self.charging = True
-                else:
+                if "NG" in comp:
                     self.charging = False
+                else:
+                    self.charging = True
             if "BATCAP" in comp:
                 self.cap = int(comp.split(" ")[1])
             if "Vout" in comp:
                 self.Vout = float(comp.split(" ")[1])/1000.00
-        
+        self.lastUpdate = round(time.monotonic(), 2)
 
 class CPU:
     # Basic CPU temperature monitoring
