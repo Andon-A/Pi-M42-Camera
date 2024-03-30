@@ -172,4 +172,86 @@ class encoder:
                 self.direction = "Left"
             self.callback(self)
         
+
+class encoder2:
+    # This is a version of the encoder that utilizes polling instead of interrupts.
     
+    def __init__(self, color=(0,0,0)):
+        self.twist = qwiic_twist.QwiicTwist()
+        if self.twist.connected == False:
+            print("Encoder not detected.")
+            self._color = None
+            self.enabled = False
+            self.isPressed = None
+            self.pressedChange = 0
+            self.direction = "None"
+            self.lastUpdate = 0
+        else:
+            self.twist.begin()
+            self.enabled = True
+            self._color = None
+            self.color = color
+            self.isPressed = None
+            self.pressedChange = 0
+            self.direction = "None"
+            self.twist.count = 32000
+            print("Encoder initialized")
+            self.lastUpdate = 0
+            self.updateInfo()
+    
+    @property
+    def color(self):
+        return self._color
+    
+    @color.setter
+    def color(self, color):
+        # Sets the color, an RGB tuple.
+        if self.enabled == False:
+            return False
+        else:
+            c = None
+            while c is None:
+                try:
+                    self.twist.set_color(color[0], color[1], color[2])
+                    c = True
+                except:
+                    time.sleep(0.05)
+            self._color = color
+            return True
+    
+    def updateInfo(self):
+        # Updates our statuses
+        if self.enabled == False:
+            return
+        else:
+            update = False
+            count = None
+            pressed = None
+            while update == False:
+                try:
+                    count = self.twist.count
+                    pressed = self.twist.pressed
+                    update = True
+                except:
+                    time.sleep(0.05)
+            # Since our count is "fixed" at 32000, we can figure out left, right, or not moved.
+            if count < 32000:
+                self.direction = "Left"
+            elif count > 32000:
+                self.direction = "Right"
+            else:
+                self.direction = "None"
+            if self.direction != "None":
+                self.lastUpdate = round(time.monotonic(), 2)
+            time.sleep(0.05)
+            while True:
+                try:
+                    self.twist.count = 32000 # Reset the count for next time.
+                    break
+                except:
+                    time.sleep(0.05)
+            if self.isPressed != pressed:
+                # When was the last time we were pressed?
+                self.pressedChange = round(time.monotonic(), 2)
+                self.lastUpdate = round(time.monotonic(), 2)
+            self.isPressed = pressed

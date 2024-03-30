@@ -9,7 +9,7 @@
 
 # Set our paths
 import sys
-sys.path.append('./camera_lib')
+sys.path.append('/home/camera/Software/camera_lib')
 import os
 
 import system, controls, camera, menu, cam_config # Our own libraries
@@ -32,8 +32,8 @@ _powerPin = 16 #d16
 
 # Are we in settings?
 _settingsMode = False
+_changedSettingsMode = False
 
-# Did we have an interrupt fire when another one was firing?
 _lastEnc = 0
 _lastPress = 0
 _needsConfig = False
@@ -128,8 +128,8 @@ def handleLiveMenu(menu, item):
         
 def handleEncoder(enc):
     #print("Handling Encoder")
-    global _settingsMode, _lastEnc
-    _lastEnc = time.monotonic()
+    global _settingsMode, _changedSettingsMode
+    enc.updateInfo()
     # Handle's the encoder's direction.
     if enc.direction == "Left":
         menuPrevOption()
@@ -137,26 +137,25 @@ def handleEncoder(enc):
     elif enc.direction == "Right":
         menuNextOption()
         handleAdjust(getCurrentSelectMenu())
-    # Handle the button press.
-    if enc.pressedChange and enc.pressed:
-        encTimer = time.monotonic() # When we started listening.
-        t = time.monotonic() - encTimer
-        while enc.pressed and t <= 5.0: # Wait until we have gone for 5 seconds or we release.
-            time.sleep(0.1)
-            t = time.monotonic() - encTimer
-        # how long have we been pressed?
-        if t >= 5.0: # If we've been pressed for 5 or more seconds, enter or leave settings menu.
-            _settingsMode = not _settingsMode
-            if _settingsMode:
-                print("Entering Settings Mode")
-            elif not _settingsMode:
-                print("Exiting Settings Mode")
-        else:
-            menuNextMenu()
-            print("Switched to menu {0}".format(getCurrentSelectMenu()[0]))
-    time.sleep(0.02) # Make sure we don't overwhelm the i2c bus
-    enc.resetState()
-    # Now we need to handle our items.
+    # Do we want to do something about our button press?
+    # Have we been held for more than 5 seconds?
+    if enc.isPressed == True and (enc.pressedChange > time.monotonic() + 5):
+        # enter settings mode
+        _settingsMode = not _settingsMode
+        if _settingsMode:
+            print("Entering Settings Mode")
+        elif not _settingsMode:
+            print("Exiting Settings Mode")
+        _changedSettingsMode = True
+    elif enc.isPressed == False and (enc.pressedChange > time.monotonic() - 0.25) and _changedSettingsMode == False:
+        # Regular button press.
+        menuNextMenu()
+        print("Switched to menu {0}".format(getCurrentSelectMenu()[0]))
+        time.sleep(0.25) # Make sure we don't ping the thing too many times.
+    elif enc.isPressed == False and _changedSettingsMode == True:
+        # If we recently changed into or out of settings mode, don't do anything when releasing
+        # the button except resetting that flag.
+        _changedSettingsMode == False
     
 def handleShutterButton(button):
     global _lastEnc, _needsConfig, _lastPress
@@ -215,8 +214,7 @@ def queueShutdown(override=False):
     exit()
 
 shutter     = controls.button(_shutterPinIn, _shutterPinOut, bounce=50, callback=handleShutterButton)
-encoder     = controls.encoder(timeout=10, callback=handleEncoder)
-encoder.resetState()
+encoder     = controls.encoder2()
 
 # Battery
 batt = system.Battery()
@@ -230,9 +228,9 @@ regOverlay = camera.Overlay(camera=cam, textOrigin=(10, 25))
 
 # We'll need an Overlay for each of our text menus.
 
-_isPressed = False
 
 
+batt.updateInfo()
 while True:
     #print("Interface Board temp: " + str(round(boardTemp.temp_F, 2)))
     #print("CPU Temp: " + str(round(cpuTemp.temp_F, 2)))
@@ -243,34 +241,17 @@ while True:
     time.sleep(0.1)
     timenow = round(time.monotonic(), 2)
     # Time is given in seconds.
-    if (timenow > _lastEnc + 0.5) and _needsConfig:
-        cam.reconfigure()
-        _needsConfig = False
-        encoder.resetState()
-    #if timenow > _lastEnc + 2 and encoder.hasInterrupt:
-        # print("Encoder has interrupt. Clearing.")
-    #    encoder.resetState() # Clear lurking interrupts after a few seconds.
     if round(timenow, 0) % 5 == 0:
+        # Every 5 seconds:
         # Make sure we save our config regularly.
         cam_config.saveConfig
-    if timenow > batt.lastUpdate + 5:
-        # Update our battery every 5 seconds.
+        # Update our battery info
         batt.updateInfo()
-    #if batt.voltage <= batt.cutoff_voltage: # We're running into battery damage range.
-    #    cam_config.saveConfig # Make sure our current state is saved.
-    #    queueShutdown()
-    # Pressing the button doesn't seem like it's triggering the interrupt.
-    if encoder.pressed and not _isPressed:
-        _isPressed = True
-        encoder.isPressed = True
-        encoder.pressedChange = True
-        handleEncoder(encoder)
-        time.sleep(0.5) # Give us a little debounce time.
-    elif not encoder.pressed and _isPressed:
-        _isPressed = False
-        encoder.isPressed = False
-        encoder.pressedChange = True
-        handleEncoder(encoder)
-        time.sleep(0.5)
+    # Always check our encoder.
+    handleEncoder(encoder)
+    # Update our camera config if we need to. But wait until we're not doing anything.
+    if (encoder.lastUpdate < timenow - 0.5) and encoder.isPressed == False and _needsConfig:
+        print ("Reconfiguring camera")
+        cam.reconfigure()
+        _needsConfig = False
     updateRegOverlay(regOverlay)
-    #encoder.resetState() # Don't want any lurking interrupts

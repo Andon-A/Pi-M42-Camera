@@ -81,10 +81,10 @@ class Battery:
                     self.charging = False
                 else:
                     self.charging = True
-            if "BATCAP" in comp:
-                self.cap = int(comp.split(" ")[1])
-            if "Vout" in comp:
-                self.Vout = float(comp.split(" ")[1])/1000.00
+            if "BATCAP" in comp and len(comp) > 7:
+                self.cap = int(comp[7:])
+            if "Vout" in comp and len(comp) > 5:
+                self.Vout = float(comp[5:])/1000.00
         self.lastUpdate = round(time.monotonic(), 2)
 
 class CPU:
