@@ -25,8 +25,8 @@ backlight.fade_duration = 0 # We want changes instantly
 backlight.brightness = 75
 
 # Pin assignments
-_shutterPinIn = 21 #d21
-_shutterPinUp = 20 #d20
+_shutterPinIn = 20 #d21
+_shutterPinOut = 21 #d20
 _powerPin = 16 #d16
 
 
@@ -215,6 +215,7 @@ def queueShutdown(override=False):
     exit()
 
 shutter     = controls.button(_shutterPinIn, _shutterPinOut, bounce=50, callback=handleShutterButton)
+encoder     = controls.encoder(timeout=10, callback=handleEncoder)
 encoder.resetState()
 
 # Battery
@@ -245,9 +246,9 @@ while True:
         cam.reconfigure()
         _needsConfig = False
         encoder.resetState()
-    if timenow > _lastEnc + 2 and encoder.hasInterrupt:
+    #if timenow > _lastEnc + 2 and encoder.hasInterrupt:
         # print("Encoder has interrupt. Clearing.")
-        encoder.resetState() # Clear lurking interrupts after a few seconds.
+    #    encoder.resetState() # Clear lurking interrupts after a few seconds.
     if round(timenow, 0) % 5 == 0:
         # Make sure we save our config regularly.
         cam_config.saveConfig

@@ -8,7 +8,7 @@ import time
 from gpiozero import CPUTemperature
 
 # We want our board definitions
-import board
+#import board
 
 # Our services to handle.
 class Service:
@@ -59,14 +59,14 @@ class Battery:
         self.charging = False
         
     def _getLastSerialData():
-	# Grabs the latest serial data.
-	data = self.ser.read(self.ser.inWaiting())
-	data = data.decode('ascii','ignore').split("\n")
-	if len(data) >= 2: # Always ignore the last one, since it is likely imcomplete.
-		data = data[-2]
-	else:
-		data = data[0] # Unless it's the only one we have.
-	return data
+    # Grabs the latest serial data.
+        data = self.ser.read(self.ser.inWaiting())
+        data = data.decode('ascii','ignore').split("\n")
+        if len(data) >= 2: # Always ignore the last one, since it is likely imcomplete.
+            data = data[-2]
+        else:
+            data = data[0] # Unless it's the only one we have.
+        return data
     
     def updateInfo():
         info = self._getLastSerialData()

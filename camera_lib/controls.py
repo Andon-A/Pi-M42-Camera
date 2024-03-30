@@ -11,16 +11,17 @@ import qwiic_twist
 class button:
     def __init__(self, pinIn, pinOut, bounce=100, callback=None):
         # Set up a button.
-        self.pin = pin
+        self.pinIn = pinIn
+        self.pinOut = pinOut
         self.callback = callback
         GPIO.setup(self.pinIn, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
         GPIO.setup(self.pinOut, GPIO.OUT)
         GPIO.output(self.pinOut, 1)
-        GPIO.add_event_detect(self.pin, GPIO.RISING, bouncetime=bounce, callback=self.getPressed)
+        GPIO.add_event_detect(self.pinIn, GPIO.RISING, bouncetime=bounce, callback=self.getPressed)
 
     @property
     def pressed(self):     
-        return GPIO.input(self.pin)
+        return GPIO.input(self.pinIn)
     
     def getPressed(self, channel):
         self.callback(self)
@@ -28,8 +29,7 @@ class button:
 
 class encoder:
 
-    def __init__(self, int_pin, callback, color=(0,0,0), timeout=100):
-        self.int_pin = int_pin
+    def __init__(self, callback, color=(0,0,0), timeout=100):
         self.callback = callback    # We return pressed and count
         self._color = (0,0,0)       # Our LED color. Default to nothing, it's set later.
         self._timeout = -1          # How long we wait (ms) after the encoder has stopped moving to ping.
@@ -38,10 +38,6 @@ class encoder:
         self.isPressed = False      # Is our button (still) pressed?
         self.direction = "None"     # What direction did we last move?
         self.pressedChange = False  # Has our pressed state changed?
-        # We want to set up our interrupt pin as a pullup.
-        GPIO.setup(self.int_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        # We also only care when it goes down.
-        GPIO.add_event_detect(self.int_pin, GPIO.FALLING, callback=self.detectInput)
         # Now set up the twist.
         self.twist = qwiic_twist.QwiicTwist()
         if self.twist.connected == False:
@@ -102,13 +98,6 @@ class encoder:
             return 0
         
     @property
-    def hasInterrupt(self):
-        if GPIO.input(self.int_pin) == 0:
-            return True
-        else:
-            return False
-        
-    @property
     def color(self):
         return self._color
     
@@ -165,13 +154,6 @@ class encoder:
             self.twist.clear_interrupts()
         except:
             pass
-        # If we're stubborn (Like, you know. The button for it.), try until we succeed.
-        while self.hasInterrupt:
-            time.sleep(0.05) # Don't go too fast and overwhelm the i2c bus
-            try:
-                self.twist.clear_interrupts()
-            except:
-                pass
     
     def detectInput(self, channel):
         # This is triggered when we detect an interrupt.

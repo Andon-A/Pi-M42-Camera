@@ -159,7 +159,8 @@ class Camera:
         # And also start the camera.
         self.camera.configure(self.getConfig())
         self._currentCFG = self.getConfig()
-        self.camera.start_preview(Preview.DRM, width=800, height=480, transform=Transform(hflip=1, vflip=1))
+        #self.camera.start_preview(Preview.DRM, width=800, height=480, transform=Transform(hflip=1, vflip=1))
+        self.camera.start_preview(Preview.DRM, width=800, height=480)
         self.camera.start()
         return True
     
@@ -195,7 +196,8 @@ class Camera:
             self.setControls() # Set our exposure and ISO
             self._currentCFG = new_cfg
             self.camera.stop_preview()
-            self.camera.start_preview(Preview.DRM, width=800, height=480, transform=Transform(hflip=1, vflip=1))
+            #self.camera.start_preview(Preview.DRM, width=800, height=480, transform=Transform(hflip=1, vflip=1))
+            self.camera.start_preview(Preview.DRM, width=800, height=480)
             self.camera.start()
             self._needsConfig = False
     
@@ -316,7 +318,7 @@ class Camera:
     def save_image(self):
         # Saves the still image as a JPEG and/or DNG as requested
         self.isSaving = True
-        request = self.camera.capture_request()
+        request = self.camera.capture_request(flush=True)
         base_path = cam_config.cfg["Info"]["ImgPath"]
         if not os.path.isdir(base_path):
             os.makedirs(base_path)
@@ -418,7 +420,7 @@ class Overlay:
             bgcolor = (self._bg[2], self._bg[1], self._bg[0]) # OpenCV takes BGR
             cv2.rectangle(base, (0,0), (800, 480), bgcolor, thickness=-1)
         self.writeLines(base)
-        base = cv2.flip(base, -1) # Rotate 180 degrees
+        #base = cv2.flip(base, -1) # Rotate 180 degrees
         return base        
         
     def addLine(self, text, color=(255,255,255,255), bold=False, linenum = -1):
