@@ -316,7 +316,7 @@ class Camera:
     def save_image(self):
         # Saves the still image as a JPEG and/or DNG as requested
         self.isSaving = True
-        request = self.camera.capture_request()
+        request = self.camera.capture_request(flush=True)
         base_path = cam_config.cfg["Info"]["ImgPath"]
         if not os.path.isdir(base_path):
             os.makedirs(base_path)
